@@ -1,0 +1,36 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.overlay-section {
+    cursor: pointer;
+    /* Styling for sections */
+}
+
+.overlay {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
+    z-index: 1; /* Sit on top */
+    overflow: auto; /* Enable scroll if needed */
+}
+
+.overlay-content {
+    position: relative;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    width: 80%; /* Could be more or less, depending on screen size */
+    background-color: #fff; /* White background */
+}
+
+.close-btn {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    font-size: 25px;
+    cursor: pointer;
+}
