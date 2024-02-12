@@ -1,36 +1,32 @@
-body, html {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-}
-
-.overlay-section {
-    cursor: pointer;
-    /* Styling for sections */
-}
-
 .overlay {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    background-color: rgba(0,0,0,0.5); /* Black w/ opacity */
-    z-index: 1; /* Sit on top */
-    overflow: auto; /* Enable scroll if needed */
+  display: none; /* Hidden by default */
+  position: fixed; /* Full-screen position */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8); /* Dimmed background color */
+  z-index: 2; /* Above other content */
 }
 
 .overlay-content {
-    position: relative;
-    margin: 15% auto; /* 15% from the top and centered */
-    padding: 20px;
-    width: 80%; /* Could be more or less, depending on screen size */
-    background-color: #fff; /* White background */
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* Center the overlay content */
+  width: 80%; /* Adjust width as necessary */
+  max-width: 600px; /* Maximum width of the content */
+  padding: 20px;
+  background: white; /* Background color of the content */
+  border-radius: 5px; /* Optional: for rounded corners */
+  text-align: center; /* Center the text inside the overlay */
 }
 
 .close-btn {
-    position: absolute;
-    top: 0;
-    right: 10px;
-    font-size: 25px;
-    cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 25px;
+  color: #ccc;
+  cursor: pointer;
 }

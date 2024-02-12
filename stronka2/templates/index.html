@@ -2,33 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Car Mechanic</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <link rel="stylesheet" href="style.css">
+    <title>Local Car Mechanic</title>
 </head>
 <body>
-    <div id="main-content">
-        <header>
-            <!-- Navigation and logo here -->
-        </header>
-        <section id="about" class="overlay-section">About Us</section>
-        <section id="services" class="overlay-section">Services</section>
-        <!-- Add more sections as needed -->
+<nav class="container-fluid">
+    <ul>
+        <li><strong>Car Mechanic</strong></li>
+    </ul>
+    <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="javascript:void(0)" onclick="openOverlay('about-us-overlay')">About Us</a></li>
+        <li><a href="#">Services</a></li>
+        <li><a href="#">Testimonials</a></li>
+        <li><a href="#">Gallery</a></li>
+        <li><a href="#" role="button">Contact</a></li>
+    </ul>
+</nav>
+<main class="container">
+    <div class="grid">
+        <section>
+            <hgroup>
+                <h2>Welcome to Your Local Car Mechanic</h2>
+                <h3>Quality service that you can trust</h3>
+            </hgroup>
+            <p>At our garage, we offer a wide range of services to keep your car running smoothly. From regular maintenance checks to emergency repairs, our team of experienced mechanics is here to help.</p>
+            <figure>
+                <img src="https://unsplash.com/photos/1527pjeb6jg" alt="Mechanic at work" />
+                <figcaption>Photo by <a href="https://unsplash.com/@randomuser" target="_blank">Random User</a> on Unsplash</figcaption>
+            </figure>
+            <h3>Our Services</h3>
+            <p>We specialize in a variety of car repair and maintenance services, including but not limited to:</p>
+            <ul>
+                <li>Oil changes</li>
+                <li>Brake repairs</li>
+                <li>Engine diagnostics</li>
+                <li>Tire rotations and replacements</li>
+            </ul>
+            <h3>Why Choose Us?</h3>
+            <p>With years of experience and a commitment to excellence, our team provides reliable and efficient service to keep your car in top condition.</p>
+        </section>
     </div>
-    <!-- Overlay Containers -->
-    <div id="about-overlay" class="overlay">
-        <div class="overlay-content">
-            <span class="close-btn">&times;</span>
-            <!-- About Us Content Here -->
-        </div>
+</main>
+<section aria-label="Subscribe example">
+    <div class="container">
+        <article>
+            <hgroup>
+                <h2>Get in Touch</h2>
+                <h3>Book your appointment today</h3>
+            </hgroup>
+            <form class="grid">
+                <input type="text" id="firstname" name="firstname" placeholder="Your Name" aria-label="Your Name" required />
+                <input type="email" id="email" name="email" placeholder="Your Email" aria-label="Your Email" required />
+                <button type="submit" onclick="event.preventDefault()">Submit</button>
+            </form>
+        </article>
     </div>
-    <div id="services-overlay" class="overlay">
-        <div class="overlay-content">
-            <span class="close-btn">&times;</span>
-            <!-- Services Content Here -->
-        </div>
+</section>
+<footer class="container">
+    <small>
+        <a href="#">Privacy Policy</a> • <a href="#">Terms of Service</a>
+    </small>
+</footer>
+
+<!-- Overlay Sections Start Here -->
+<div id="about-us-overlay" class="overlay">
+    <div class="overlay-content">
+        <span class="close-btn" onclick="closeOverlay('about-us-overlay')">&times;</span>
+        <h2>About Us</h2>
+        <p>meow</p>
     </div>
-    <!-- More overlays as needed -->
-    <script src="script.js"></script>
+</div>
+
+<script src="scripts.js"></script>
 </body>
 </html>

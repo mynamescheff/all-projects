@@ -1,18 +1,16 @@
-document.querySelectorAll('.overlay-section').forEach(item => {
-    item.addEventListener('click', function() {
-        document.getElementById(this.id + '-overlay').style.display = 'block';
-    });
-});
-
-document.querySelectorAll('.close-btn').forEach(item => {
-    item.addEventListener('click', function() {
-        this.parentElement.parentElement.style.display = 'none';
-    });
-});
-
-// Close overlay when clicking outside of it
-window.onclick = function(event) {
-    if (event.target.classList.contains('overlay')) {
-        event.target.style.display = 'none';
-    }
+function openOverlay(overlayId) {
+    var overlay = document.getElementById(overlayId);
+    overlay.style.display = 'block';
 }
+
+function closeOverlay(overlayId) {
+    var overlay = document.getElementById(overlayId);
+    overlay.style.display = 'none';
+}
+
+// Close the overlay if the user clicks outside of the content area
+window.addEventListener('click', function(event) {
+    if (event.target.className === 'overlay') {
+        closeOverlay(event.target.id);
+    }
+});
