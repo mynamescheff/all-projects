@@ -1,0 +1,16 @@
+<a href="#" onclick="show('popup1')">Show popup (box-shadow)</a>
+<a href="#" onclick="show('popup2')">Show popup (:before & :after)</a>
+
+<div class="popup" id="popup1">
+  <p>This is a popup!</p>
+  <p>Overlay uses <b>box-shadow</b>.</p>
+	<p>(Doesn't block elements on background)</p>
+  <a href="#" onclick="hide('popup1')">Ok!</a>
+</div>
+
+<div class="popup" id="popup2">
+  <p>This is a popup!</p>
+  <p>Overlay uses <b>:before</b> and <b>:after</b> pseudo-classes.</p>
+	<p>(This one does block elements on the background)</p>
+  <a href="#" onclick="hide('popup2')">Ok!</a>
+</div>
