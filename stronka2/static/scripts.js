@@ -14,3 +14,12 @@ window.addEventListener('click', function(event) {
         closeOverlay(event.target.id);
     }
 });
+
+// New functions for pop-ups
+function show(id) {
+    document.getElementById(id).style.display = 'block';
+}
+
+function hide(id) {
+    document.getElementById(id).style.display = 'none';
+}
