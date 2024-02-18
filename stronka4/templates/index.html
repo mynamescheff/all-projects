@@ -4,75 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local Car Mechanic</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
     <header>
-        <nav>
-          <ul>
-              <li><a href="#" onclick="show('popup1')">About Us</a></li>
-              <li><a href="#" onclick="show('popup2')">Services</a></li>
-              <li><a href="#" onclick="show('popup3')">Gallery</a></li>
-              <li><a href="#" onclick="show('popup4')">Contact</a></li>
-          </ul>
-      </nav>
+        <!-- Navigation bar or header content -->
+        <p>header</p>
     </header>
-
-    <section id="about">
-        <h1>About Us</h1>
-        <p>Welcome to our local car mechanic shop. We specialize in ...</p>
-    </section>
-
-    <section id="services">
-        <h1>Services</h1>
-        <p>Our services include ...</p>
-    </section>
-
-    <section id="gallery">
-        <h1>Gallery</h1>
-        <p>Check out some of our work ...</p>
-    </section>
-
-    <section id="contact">
-        <h1>Contact</h1>
-        <p>Get in touch with us ...</p>
-    </section>
-
-    <div id="popup1" class="popup">
-      <div class="popup-content">
-          <span class="close">&times;</span>
-          <p>About Us content...</p>
-      </div>
-  </div>
-  
-  <div id="popup2" class="popup">
-      <div class="popup-content">
-          <span class="close">&times;</span>
-          <p>Services content...</p>
-      </div>
-  </div>
-
-  <div id="popup3" class="popup">
-      <div class="popup-content">
-          <span class="close">&times;</span>
-          <p>Gallery content...</p>
-      </div>
-  </div>
-
-  <div id="popup4" class="popup">
-      <div class="popup-content">
-          <span class="close">&times;</span>
-          <p>Contact content...</p>
-      </div>
-  </div>
-  
-    <a href="#" onclick="show('popup1')">Show Popup 1</a>
-    <a href="#" onclick="show('popup2')">Show Popup 2</a>
-    <a href="#" onclick="show('popup3')">Show Popup 3</a>
-    <a href="#" onclick="show('popup4')">Show Popup 4</a>
-
+    <main>
+        <section id="about">
+            <button id="aboutBtn">About Us</button>
+            <div id="aboutModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>About Us content here.</p>
+                </div>
+            </div>
+        </section>
+        <section id="services">
+            <button id="servicesBtn">Services</button>
+            <div id="servicesModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Services content here.</p>
+                </div>
+            </div>
+        </section>
+        <section id="gallery">
+            <button id="galleryBtn">Gallery</button>
+            <div id="galleryModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Gallery content here.</p>
+                </div>
+            </div>
+        </section>
+        <section id="contact">
+            <button id="contactBtn">Contact Us</button>
+            <div id="contactModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <p>Contact Us content here.</p>
+                </div>
+            </div>
+        </section>
+    </main>
+    <footer>
+        <!-- Footer content, e.g., social media links -->
+    </footer>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
-    <script type="text/javascript" src="{{ url_for('static', filename='scripts.js') }}"></script>
-
 </body>
 </html>
