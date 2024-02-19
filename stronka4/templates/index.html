@@ -4,55 +4,75 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local Car Mechanic</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <header>
-        <!-- Navigation bar or header content -->
-        <p>header</p>
+        <h1>Welcome to Our Car Mechanic Shop</h1>
+        <nav>
+            <ul>
+                <li><button id="aboutBtn">About Us</button></li>
+                <li><button id="servicesBtn">Services</button></li>
+                <li><button id="galleryBtn">Gallery</button></li>
+                <li><button id="contactBtn">Contact Us</button></li>
+            </ul>
+        </nav>
     </header>
     <main>
-        <section id="about">
-            <button id="aboutBtn">About Us</button>
-            <div id="aboutModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <p>About Us content here.</p>
+        <!-- Main content or welcome text -->
+        <div class="welcome-text">
+            <p>Your trusted partner for all automotive repairs.</p>
+        </div>
+        <!-- About Us Modal -->
+        <div id="aboutModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>About Us</h2>
+                <p>We are a family-owned workshop with over 25 years of experience...</p>
+            </div>
+        </div>
+        <!-- Services Modal -->
+        <div id="servicesModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Services</h2>
+                <p>We offer a wide range of services, including...</p>
+            </div>
+        </div>
+        <!-- Gallery Modal -->
+        <div id="galleryModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Gallery</h2>
+                <p>Check out some of our recent work...</p>
+            </div>
+        </div>
+        <!-- Contact Us Modal -->
+        <div id="contactModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Contact Us</h2>
+                <p>Need to book an appointment or have a question? Reach out to us...</p>
+                <!-- Google Maps Embed -->
+                <div class="google-map">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2549.0841379255903!2d18.73525917722413!3d50.29035727156201!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6bb30835716a3609%3A0x6a5c64b627f42465!2sMotospec%20Serwis%20Samochodowy!5e0!3m2!1sen!2spl!4v1708367202157!5m2!1sen!2spl" 
+                    width="600" 
+                    height="450" 
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
-        </section>
-        <section id="services">
-            <button id="servicesBtn">Services</button>
-            <div id="servicesModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <p>Services content here.</p>
-                </div>
-            </div>
-        </section>
-        <section id="gallery">
-            <button id="galleryBtn">Gallery</button>
-            <div id="galleryModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <p>Gallery content here.</p>
-                </div>
-            </div>
-        </section>
-        <section id="contact">
-            <button id="contactBtn">Contact Us</button>
-            <div id="contactModal" class="modal">
-                <div class="modal-content">
-                    <span class="close">&times;</span>
-                    <p>Contact Us content here.</p>
-                </div>
-            </div>
-        </section>
+        </div>
     </main>
     <footer>
-        <!-- Footer content, e.g., social media links -->
+        <p>&copy; 2024 Local Car Mechanic Shop. All rights reserved.</p>
+        <p>Follow us on:
+            <a href="https://www.facebook.com/profile.php?id=61552495111520" target="_blank"><img src="{{ url_for('static', filename='images/facebook-icon.png') }}" alt="Facebook"></a>
+            <a href="https://www.instagram.com/motospec.serwis/" target="_blank"><img src="{{ url_for('static', filename='images/instagram-icon.png') }}" alt="Instagram"></a>
+        </p>
     </footer>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>

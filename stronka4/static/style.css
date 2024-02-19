@@ -35,3 +35,15 @@
   text-decoration: none;
   cursor: pointer;
 }
+
+.google-map iframe {
+  width: 100%;
+  height: 300px; /* or any other height */
+  border: none;
+}
+
+footer a img {
+  width: 1em; /* sets the icon size to the same as the current font size */
+  height: auto; /* maintains aspect ratio */
+  vertical-align: middle; /* aligns the icon with the middle of the text */
+}
