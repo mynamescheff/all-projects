@@ -105,3 +105,9 @@ body {
   margin: 0; /* Remove default body margin */
   font-family: Arial, sans-serif; /* Set a default font */
 }
+
+footer a img {
+  width: 1em; /* or however large you want the icons to be relative to your text */
+  height: auto; /* to maintain aspect ratio */
+  vertical-align: middle; /* to align with the text */
+}
