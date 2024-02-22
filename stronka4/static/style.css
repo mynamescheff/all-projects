@@ -48,6 +48,12 @@ footer a img {
   vertical-align: middle; /* aligns the icon with the middle of the text */
 }
 
+footer a img {
+  width: 1em; /* or however large you want the icons to be relative to your text */
+  height: auto; /* to maintain aspect ratio */
+  vertical-align: middle; /* to align with the text */
+}
+
 header {
   display: flex;
   justify-content: space-between;
@@ -102,12 +108,22 @@ nav button:hover {
 
 /* Add padding and margin as needed for alignment */
 body {
-  margin: 0; /* Remove default body margin */
-  font-family: Arial, sans-serif; /* Set a default font */
+  margin: 0;
+  padding: 0 20px; /* This adds 20 pixels of padding on the left and right */
+  font-family: Arial, sans-serif;
+  min-height: 100vh; /* This makes sure the content takes minimum full viewport height */
+  display: flex;
+  flex-direction: column; /* Aligns the content in a column */
 }
 
-footer a img {
-  width: 1em; /* or however large you want the icons to be relative to your text */
-  height: auto; /* to maintain aspect ratio */
-  vertical-align: middle; /* to align with the text */
+main {
+  flex: 1; /* This allows the main content to grow and push the footer down */
+}
+
+footer {
+  background-color: #333; /* Example background color */
+  color: white; /* Example text color */
+  text-align: center;
+  padding: 10px 0; /* Example padding */
+  margin-top: auto; /* This pushes the footer to the bottom */
 }
