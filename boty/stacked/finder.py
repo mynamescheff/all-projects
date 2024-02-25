@@ -24,13 +24,11 @@ def find_and_box_item(screenshot, template):
     loc = np.where(res >= threshold)
 
     # Draw a rectangle around the matched region
-    item_boxes = []
+    red_boxes = []
     for pt in zip(*loc[::-1]):
-        top_left = pt
-        bottom_right = (pt[0] + w, pt[1] + h)
-        item_boxes.append((top_left, bottom_right))
-        cv.rectangle(screenshot, top_left, bottom_right, (0, 0, 255), 2)
-    return screenshot, item_boxes
+        cv.rectangle(screenshot, pt, (pt[0] + w, pt[1] + h), (0, 0, 255), 2)
+        red_boxes.append((pt[0], pt[1], pt[0] + w, pt[1] + h))
+    return screenshot, red_boxes
 
 # Load the template image for equipment slots (the empty slots to be highlighted)
 slots_template_path = 'boty/stacked/eq_slot.jpg'  # Replace with your actual template path
@@ -50,15 +48,37 @@ def find_and_box_slots(screenshot, slots_template):
     loc = np.where(res >= threshold)
 
     # Draw a rectangle around the matched region
-    slot_boxes = []
+    green_boxes = []
     for pt in zip(*loc[::-1]):
-        top_left = pt
-        bottom_right = (pt[0] + w, pt[1] + h)
-        slot_boxes.append((top_left, bottom_right))
-        cv.rectangle(screenshot, top_left, bottom_right, (0, 255, 0), 2)
-    return screenshot, slot_boxes
+        cv.rectangle(screenshot, pt, (pt[0] + w, pt[1] + h), (0, 255, 0), 2)
+        green_boxes.append((pt[0], pt[1], pt[0] + w, pt[1] + h))
+    return screenshot, green_boxes
 
+# Function to move the mouse to a point with random human-like movements
+def human_like_mouse_move(x, y, duration=1):
+    pyautogui.moveTo(x, y, duration=duration, tween=pyautogui.easeInOutQuad)
 
+# Function to perform a right-click within a random area of the red box
+def random_right_click_within_box(box_coords):
+    # box_coords is a tuple: (x_start, y_start, x_end, y_end)
+    x_start, y_start, x_end, y_end = box_coords
+    x = random.randint(x_start, x_end)
+    y = random.randint(y_start, y_end)
+    human_like_mouse_move(x, y)
+    pyautogui.click(button='right')
+
+# Function to perform a left-click within a random area of one of the green boxes
+def random_left_click_within_boxes(boxes_coords):
+    # boxes_coords is a list of tuples
+    box_coords = random.choice(boxes_coords)
+    x_start, y_start, x_end, y_end = box_coords
+    x = random.randint(x_start, x_end)
+    y = random.randint(y_start, y_end)
+    human_like_mouse_move(x, y)
+    pyautogui.click(button='left')
+
+red_box_coords = []  # List to store the coordinates of the red boxes
+green_boxes_coords = []  # List to store the coordinates of the green boxes
 
 # Initialize screen capture for the game window
 capture = ScreenCapture("Path of Exile")
@@ -67,13 +87,18 @@ capture = ScreenCapture("Path of Exile")
 try:
     while True:
         screenshot = capture.capture_screen()
-        result_image, item_boxes = find_and_box_item(screenshot, template_gray)
-        result_image_with_slots, slot_boxes = find_and_box_slots(result_image, slots_template_gray)
-
-        # Now you have item_boxes and slot_boxes variables that contain the coordinates
-        # You can use these variables for further processing
-
+        result_image, red_box_coords = find_and_box_item(screenshot, template_gray)
+        result_image_with_slots, green_boxes_coords = find_and_box_slots(result_image, slots_template_gray)
+        
         cv.imshow("Detected Items and Slots", result_image_with_slots)
+        
+        # If red and green boxes are found, perform the clicks
+        if red_box_coords:
+            red_box = random.choice(red_box_coords)
+            random_right_click_within_box(red_box)
+
+        if green_boxes_coords:
+            random_left_click_within_boxes(green_boxes_coords)
 
         # Break the loop if 'q' is pressed
         if cv.waitKey(1) & 0xFF == ord('q'):
