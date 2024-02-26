@@ -69,7 +69,6 @@ def random_right_click_within_box(box_coords):
 
 # Function to perform a left-click within a random area of one of the green boxes
 def random_left_click_within_boxes(boxes_coords):
-    # boxes_coords is a list of tuples
     box_coords = random.choice(boxes_coords)
     x_start, y_start, x_end, y_end = box_coords
     x = random.randint(x_start, x_end)
@@ -92,15 +91,13 @@ try:
         
         cv.imshow("Detected Items and Slots", result_image_with_slots)
         
-        # If red and green boxes are found, perform the clicks
-        if red_box_coords:
+        # Perform the clicks if red and green boxes are found
+        if red_box_coords and green_boxes_coords:
             red_box = random.choice(red_box_coords)
             random_right_click_within_box(red_box)
-
-        if green_boxes_coords:
             random_left_click_within_boxes(green_boxes_coords)
-
-        # Break the loop if 'q' is pressed
+        
+        # Break the loop and exit the program if 'q' is pressed
         if cv.waitKey(1) & 0xFF == ord('q'):
             break
 
