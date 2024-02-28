@@ -127,3 +127,8 @@ footer {
   padding: 10px 0; /* Example padding */
   margin-top: auto; /* This pushes the footer to the bottom */
 }
+
+.maps-link {
+  font-weight: bold;
+  text-decoration: underline;
+}
