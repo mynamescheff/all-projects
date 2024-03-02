@@ -30,3 +30,48 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Function to close any open modal
+    function closeModals() {
+        let modals = document.querySelectorAll('.modal');
+        modals.forEach(function(modal) {
+            modal.style.display = 'none';
+        });
+    }
+
+    // Attach click event to modal buttons
+    let modalBtns = document.querySelectorAll('[id$="Btn"]');
+    
+    modalBtns.forEach(function(btn) {
+        btn.onclick = function() {
+            let modal = document.getElementById(btn.id.replace('Btn', 'Modal'));
+            if(modal) {
+                modal.style.display = "block";
+            }
+        }
+    });
+
+    // Attach click event to close buttons
+    let closeButtons = document.querySelectorAll('.close');
+    
+    closeButtons.forEach(function(btn) {
+        btn.onclick = function() {
+            closeModals();
+        }
+    });
+
+    // Close modals when clicking outside of them
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            closeModals();
+        }
+    }
+
+    // Close modals when pressing the Esc key
+    document.onkeydown = function(event) {
+        if (event.key === "Escape") {
+            closeModals();
+        }
+    }
+});
