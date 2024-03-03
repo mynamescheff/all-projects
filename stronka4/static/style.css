@@ -132,3 +132,41 @@ footer {
   font-weight: bold;
   text-decoration: underline;
 }
+
+/* Style for mobile devices */
+@media (max-width: 768px) {
+  /* Stack the header title and navigation on top of each other */
+  header {
+      flex-direction: column;
+      align-items: flex-start; /* Align items to the start (left) */
+  }
+
+  nav ul {
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%; /* Full width */
+  }
+
+  nav li {
+      width: 100%; /* Full width list items */
+  }
+
+  /* Adjust button sizes for easier interaction on touch devices */
+  nav button {
+      width: 100%; /* Full width buttons */
+      padding: 15px; /* Larger padding for easier touch */
+  }
+
+  /* Adjust modal styles for smaller screens */
+  .modal-content {
+      width: 90%; /* Make modal content slightly smaller than the screen width */
+      margin: 10% auto; /* Increase top margin */
+  }
+
+  /* Other styles as needed for smaller screens */
+}
+
+/* You can also add styles for larger tablets and smaller desktops, if necessary */
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Adjust styles for larger tablets and smaller desktops */
+}
