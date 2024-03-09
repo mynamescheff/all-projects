@@ -170,3 +170,45 @@ footer {
 @media (min-width: 769px) and (max-width: 1024px) {
   /* Adjust styles for larger tablets and smaller desktops */
 }
+
+.phone-link {
+    display: inline-block;
+    background-color: #007bff; /* Bootstrap primary button color for example */
+    color: white;
+    padding: 10px 15px;
+    margin: 10px 0;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    text-align: center;
+}
+
+.phone-link:hover, .phone-link:active {
+    background-color: #0056b3;
+}
+
+.contact-options {
+    display: flex;
+    justify-content: space-around; /* Distributes space evenly around the items */
+    padding: 10px 0; /* Add some vertical padding */
+}
+
+.contact-person {
+    display: block;
+    background-color: #007bff; /* Example background color */
+    color: white; /* Text color */
+    text-align: center;
+    padding: 10px;
+    margin: 0 5px; /* Add horizontal margin for spacing between boxes */
+    text-decoration: none; /* Remove underline from links */
+    border-radius: 5px; /* Optional: rounds the corners of the boxes */
+    width: 30%; /* Example width to ensure they fit in one row */
+}
+
+/* Adjustments for smaller screens */
+@media (max-width: 768px) {
+    .contact-person {
+        width: auto; /* Let the boxes take up the needed width */
+        flex-grow: 1; /* Allow boxes to grow as needed */
+    }
+}
