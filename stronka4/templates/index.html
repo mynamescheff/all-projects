@@ -43,8 +43,19 @@
         <div id="galleryModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
-                <h2>Gallery</h2>
-                <p>Check out some of our recent work...</p>
+                <div class="thumbnails">
+                    <!-- Example thumbnails -->
+                    <img src="static/images/1.jpg" alt="Thumbnail 1" class="thumbnail">
+                    <img src="static/images/2.jpg" alt="Thumbnail 2" class="thumbnail">
+                    <!-- Add more thumbnails as needed -->
+                </div>
+                <div class="lightbox" style="display:none;">
+                    <div class="lightbox-content">
+                        <span class="arrow left">&#10094;</span>
+                        <img class="fullsize-photo">
+                        <span class="arrow right">&#10095;</span>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Contact Us Modal -->
