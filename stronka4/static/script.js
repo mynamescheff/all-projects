@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const thumbnails = document.querySelectorAll('.thumbnail');
     const lightbox = document.querySelector('.lightbox');
     const fullsizePhoto = document.querySelector('.fullsize-photo');
-    const close = document.querySelector('.close');
+    const closeLightboxButton = document.querySelector('.close-lightbox');
     let currentIndex;
 
     thumbnails.forEach((thumbnail, index) => {
@@ -90,6 +90,10 @@ document.addEventListener('DOMContentLoaded', function() {
             currentIndex = index;
             updateArrows();
         });
+    });
+
+    closeLightboxButton.addEventListener('click', function() {
+        lightbox.style.display = 'none';
     });
 
     document.querySelector('.arrow.left').addEventListener('click', function() {
@@ -108,12 +112,34 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    close.addEventListener('click', function() {
-        lightbox.style.display = 'none';
+    document.addEventListener('keydown', function(event) {
+        // Updated handling for the Escape key
+        if (event.key === "Escape") {
+            if (lightbox.style.display === 'flex') {
+                lightbox.style.display = 'none';
+                // Prevent further actions if lightbox was open
+                event.stopPropagation();
+            }
+            // Removed the else clause that might close the gallery modal
+        } else if (event.key === 'ArrowLeft') {
+            navigatePhotos(-1);
+        } else if (event.key === 'ArrowRight') {
+            navigatePhotos(1);
+        }
     });
+
+    function navigatePhotos(direction) {
+        // Adjust currentIndex based on direction and wrap around if necessary
+        currentIndex += direction;
+        if (currentIndex < 0) currentIndex = thumbnails.length - 1;
+        if (currentIndex >= thumbnails.length) currentIndex = 0;
+        fullsizePhoto.src = thumbnails[currentIndex].src;
+        updateArrows();
+    }
 
     function updateArrows() {
         document.querySelector('.arrow.left').style.display = currentIndex > 0 ? '' : 'none';
         document.querySelector('.arrow.right').style.display = currentIndex < thumbnails.length - 1 ? '' : 'none';
     }
 });
+
