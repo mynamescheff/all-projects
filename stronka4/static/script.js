@@ -97,30 +97,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.querySelector('.arrow.left').addEventListener('click', function() {
-        if (currentIndex > 0) {
-            currentIndex--;
-            fullsizePhoto.src = thumbnails[currentIndex].src;
-            updateArrows();
-        }
+        navigatePhotos(-1);
     });
 
     document.querySelector('.arrow.right').addEventListener('click', function() {
-        if (currentIndex < thumbnails.length - 1) {
-            currentIndex++;
-            fullsizePhoto.src = thumbnails[currentIndex].src;
-            updateArrows();
-        }
+        navigatePhotos(1);
     });
 
     document.addEventListener('keydown', function(event) {
-        // Updated handling for the Escape key
         if (event.key === "Escape") {
             if (lightbox.style.display === 'flex') {
                 lightbox.style.display = 'none';
-                // Prevent further actions if lightbox was open
-                event.stopPropagation();
+                event.preventDefault(); // Prevent further handling
             }
-            // Removed the else clause that might close the gallery modal
+            // Now only the lightbox is targeted for the Escape key, not the gallery modal
         } else if (event.key === 'ArrowLeft') {
             navigatePhotos(-1);
         } else if (event.key === 'ArrowRight') {
@@ -129,17 +119,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function navigatePhotos(direction) {
-        // Adjust currentIndex based on direction and wrap around if necessary
-        currentIndex += direction;
-        if (currentIndex < 0) currentIndex = thumbnails.length - 1;
-        if (currentIndex >= thumbnails.length) currentIndex = 0;
-        fullsizePhoto.src = thumbnails[currentIndex].src;
-        updateArrows();
+        if (lightbox.style.display === 'flex') { // Ensure this runs only if the lightbox is open
+            currentIndex += direction;
+            currentIndex = (currentIndex + thumbnails.length) % thumbnails.length; // Cycle through thumbnails
+            fullsizePhoto.src = thumbnails[currentIndex].src;
+            updateArrows();
+        }
     }
 
     function updateArrows() {
-        document.querySelector('.arrow.left').style.display = currentIndex > 0 ? '' : 'none';
-        document.querySelector('.arrow.right').style.display = currentIndex < thumbnails.length - 1 ? '' : 'none';
+        document.querySelector('.arrow.left').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+        document.querySelector('.arrow.right').style.visibility = currentIndex < thumbnails.length - 1 ? 'visible' : 'hidden';
     }
 });
-
