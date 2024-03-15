@@ -7,6 +7,7 @@
     <style>
         /* Embedded CSS from style.css */
         /* Pop-up modal styles */
+/* Pop-up modal styles */
 .modal {
   display: none; /* Hidden by default */
   position: fixed; /* Stay in place */
@@ -272,6 +273,29 @@ footer {
   max-width: 90%;
   max-height: 80vh;
 }
+
+.lightbox-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: red; /* Red background for visibility */
+  color: white; /* White text */
+  border: none; /* Remove default border */
+  cursor: pointer; /* Change cursor to pointer */
+  font-size: 20px; /* Increase font size for better visibility */
+  padding: 5px 10px; /* Padding around the text */
+  border-radius: 50%; /* Circle shape */
+  z-index: 3; /* Ensure it's above the photo */
+}
+
+.close-lightbox {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  color: white;
+  font-size: 30px;
+  cursor: pointer;
+}
     </style>
 </head>
 <body>
@@ -322,6 +346,7 @@ footer {
                         <span class="arrow left">&#10094;</span>
                         <img class="fullsize-photo">
                         <span class="arrow right">&#10095;</span>
+                        <span class="close-lightbox">&times;</span>
                     </div>
                 </div>
             </div>
@@ -445,7 +470,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const thumbnails = document.querySelectorAll('.thumbnail');
     const lightbox = document.querySelector('.lightbox');
     const fullsizePhoto = document.querySelector('.fullsize-photo');
-    const close = document.querySelector('.close');
+    const closeLightboxButton = document.querySelector('.close-lightbox');
     let currentIndex;
 
     thumbnails.forEach((thumbnail, index) => {
@@ -457,31 +482,47 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    document.querySelector('.arrow.left').addEventListener('click', function() {
-        if (currentIndex > 0) {
-            currentIndex--;
-            fullsizePhoto.src = thumbnails[currentIndex].src;
-            updateArrows();
-        }
-    });
-
-    document.querySelector('.arrow.right').addEventListener('click', function() {
-        if (currentIndex < thumbnails.length - 1) {
-            currentIndex++;
-            fullsizePhoto.src = thumbnails[currentIndex].src;
-            updateArrows();
-        }
-    });
-
-    close.addEventListener('click', function() {
+    closeLightboxButton.addEventListener('click', function() {
         lightbox.style.display = 'none';
     });
 
+    document.querySelector('.arrow.left').addEventListener('click', function() {
+        navigatePhotos(-1);
+    });
+
+    document.querySelector('.arrow.right').addEventListener('click', function() {
+        navigatePhotos(1);
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === "Escape") {
+            if (lightbox.style.display === 'flex') {
+                lightbox.style.display = 'none';
+                event.preventDefault(); // Prevent further handling
+            }
+            // Now only the lightbox is targeted for the Escape key, not the gallery modal
+        } else if (event.key === 'ArrowLeft') {
+            navigatePhotos(-1);
+        } else if (event.key === 'ArrowRight') {
+            navigatePhotos(1);
+        }
+    });
+
+    function navigatePhotos(direction) {
+        if (lightbox.style.display === 'flex') { // Ensure this runs only if the lightbox is open
+            currentIndex += direction;
+            currentIndex = (currentIndex + thumbnails.length) % thumbnails.length; // Cycle through thumbnails
+            fullsizePhoto.src = thumbnails[currentIndex].src;
+            updateArrows();
+        }
+    }
+
     function updateArrows() {
-        document.querySelector('.arrow.left').style.display = currentIndex > 0 ? '' : 'none';
-        document.querySelector('.arrow.right').style.display = currentIndex < thumbnails.length - 1 ? '' : 'none';
+        document.querySelector('.arrow.left').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+        document.querySelector('.arrow.right').style.visibility = currentIndex < thumbnails.length - 1 ? 'visible' : 'hidden';
     }
 });
+
     </script>
 </body>
 </html>
