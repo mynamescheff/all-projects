@@ -287,3 +287,48 @@ footer {
   font-size: 30px;
   cursor: pointer;
 }
+
+/* Default to light theme */
+:root {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --link-color: #0000ff;
+  --modal-background-color: #fefefe;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+      --background-color: #121212;
+      --text-color: #ffffff;
+      --link-color: #bb86fc;
+      --modal-background-color: #333333;
+  }
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+a {
+  color: var(--link-color);
+}
+
+.modal-content {
+  background-color: var(--modal-background-color);
+}
+
+.dark-theme {
+  --background-color: #121212;
+  --text-color: #ffffff;
+  --link-color: #bb86fc;
+  --modal-background-color: #333333;
+}
+
+/* Light theme variables are already defined as the default */
+.light-theme {
+  --background-color: #ffffff;
+  --text-color: #000000;
+  --link-color: #0000ff;
+  --modal-background-color: #fefefe;
+}
