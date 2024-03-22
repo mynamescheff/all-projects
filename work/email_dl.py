@@ -1,17 +1,20 @@
 import os
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 import re
-import time
 import win32com.client
+import time
+from character_map import transform_to_swift_accepted_characters
 
 # Outlook credentials
-your_email = 'your_email@example.com'
-shared_mailbox_email = 'shared_mailbox@example.com'
+your_email = ''
+shared_mailbox_email = ''
 
 # Outlook category to filter emails
-category_to_download = 'YourCategory'
+category_to_download = ''
 
-# Target sender names (replace with actual names)
-target_senders = ['Sender1', 'Sender2', 'Sender3']
+# Target email addresses (replace with actual email addresses)
+target_senders = ['', '', '']
 
 # Get the absolute path of the script
 script_path = os.path.dirname(os.path.abspath(__file__))
@@ -28,141 +31,106 @@ os.makedirs(msg_save_path, exist_ok=True)
 
 def list_unread_emails(outlook, category):
     namespace = outlook.GetNamespace("MAPI")
-
-    # Resolve the shared mailbox recipient
     recipient = namespace.CreateRecipient(shared_mailbox_email)
     recipient.Resolve()
 
     if recipient.Resolved:
         shared_mailbox = namespace.GetSharedDefaultFolder(recipient, 6)  # 6 corresponds to the Inbox folder
-
-        # Get all unread emails in the specified category
         unread_emails = shared_mailbox.Items.Restrict(f"[Categories] = '{category}' AND [UnRead] = True")
+        num_unread_emails = len([email for email in unread_emails])  # Convert to list and get the length
+        print(f"Number of unread emails in the '{category}' category: {num_unread_emails}")
 
-        print(f"Unread emails in the '{category}' category:")
-        for item in unread_emails:
-            # Extract sender name from the complex sender information
-            sender_name_match = re.search(r'\/O=EXCHANGELABS\/OU=EXCHANGE ADMINISTRATIVE GROUP.*?-([A-Za-z]+)', item.SenderEmailAddress)
-            sender_name = sender_name_match.group(1) if sender_name_match else item.SenderEmailAddress
-
-            print(f"Sender: {sender_name}, Subject: {item.Subject}")
+def get_unique_filename(base_path, original_filename, extension):
+    counter = 2
+    new_filename = original_filename
+    while os.path.exists(os.path.join(base_path, f"{new_filename}{extension}")):
+        new_filename = f"{original_filename} {counter}"
+        counter += 1
+    return new_filename
 
 def download_attachments_and_save_as_msg(outlook, category, target_senders):
     namespace = outlook.GetNamespace("MAPI")
-
-    # Resolve the shared mailbox recipient
     recipient = namespace.CreateRecipient(shared_mailbox_email)
     recipient.Resolve()
 
     if recipient.Resolved:
-        shared_mailbox = namespace.GetSharedDefaultFolder(recipient, 6)  # 6 corresponds to the Inbox folder
-
-        # Get all unread emails in the specified category
+        shared_mailbox = namespace.GetSharedDefaultFolder(recipient, 6)  # Inbox
         unread_emails = shared_mailbox.Items.Restrict(f"[Categories] = '{category}' AND [UnRead] = True")
+        emails_to_process = [email for email in unread_emails]
 
-        # Prompt the user to confirm saving emails
         save_confirmation = input("Do you want to save these emails? (Y/N): ").strip().lower()
 
         if save_confirmation == 'y':
-            # Initialize counters for saved emails and attachments
             saved_emails = 0
             saved_attachments = 0
-
-            # List to store subjects of emails that were not saved
             not_saved_subjects = []
 
-            for item in unread_emails:
+            for item in emails_to_process:
+                email_is_correct = False  # Assume email is incorrect initially
                 try:
-                    # Extract sender name from the complex sender information
                     sender_name_match = re.search(r'\/O=EXCHANGELABS\/OU=EXCHANGE ADMINISTRATIVE GROUP.*?-([A-Za-z]+)', item.SenderEmailAddress)
                     sender_name = sender_name_match.group(1) if sender_name_match else item.SenderEmailAddress
-
-                    # Check if the sender is in the target_senders list
                     if sender_name.lower() in [sender.lower() for sender in target_senders]:
-                        # Mark the email as read
-                        item.UnRead = False
-                        item.Save()
-
-                        # Wait for 5 seconds before saving the next email
-                        time.sleep(5)
-
-                        # Check if the email has attachments
                         if item.Attachments.Count > 0:
-                            # Process each attachment
                             for attachment in item.Attachments:
-                                # Check if the attachment has .xlsx extension
                                 if attachment.FileName.lower().endswith('.xlsx'):
-                                    # Extract new filename from subject
                                     new_filename = extract_filename_from_subject(item.Subject)
-
-                                    # Replace characters that might interfere with file paths
-                                    new_filename = re.sub(r'[\/:*?"<>|]', ' ', new_filename)
-
-                                    # Check for allowed characters in the filename
+                                    new_filename = transform_to_swift_accepted_characters([new_filename])[0]
+                                    new_filename = re.sub(r'[\/:*?"<>|\t]', ' ', new_filename)
                                     new_filename = re.sub(r'[^A-Za-z0-9\s\-\–;]', '', new_filename)
-
-                                    # If ";" is not present in the subject or filename, print as invalid
-                                    if ';' not in new_filename and ';' not in item.Subject:
-                                        print(f"Invalid filename: {new_filename}")
-                                        continue
-
-                                    # Save attachment with sanitized filename
-                                    attachment_path = os.path.join(attachment_save_path, f"{new_filename}.xlsx")
-                                    try:
+                                    if ';' in new_filename or ';' in item.Subject:
+                                        email_is_correct = True
+                                        unique_attachment_filename = get_unique_filename(attachment_save_path, new_filename, '.xlsx')
+                                        attachment_path = os.path.join(attachment_save_path, f"{unique_attachment_filename}.xlsx")
                                         attachment.SaveAsFile(attachment_path)
                                         saved_attachments += 1
-
-                                        # Save the entire email with " approval" suffix
-                                        approval_msg_path = os.path.join(msg_save_path, f"{new_filename} approval.msg")
-                                        try:
-                                            item.SaveAs(approval_msg_path)
-                                        except Exception as msg_error:
-                                            print(f"Error saving approval message: {msg_error}")
-                                            print(f"Approval message path: {approval_msg_path}")
-                                    except Exception as attachment_error:
-                                        print(f"Error saving attachment: {attachment_error}")
-                                        print(f"Attachment path: {attachment_path}")
-
-                            # Increment saved emails count after processing all attachments
-                            saved_emails += 1
-
                 except Exception as e:
-                    print(f"Error processing email with subject: {item.Subject}")
-                    print(f"Error details: {e}")
-
-                    # Add the subject to the list of not saved emails
+                    print(f"Error processing email: {e}")
                     not_saved_subjects.append(item.Subject)
 
-            # Print the number of saved emails and attachments
+                if email_is_correct:
+                    item.UnRead = False
+                    item.Save()
+                    saved_emails += 1
+                else:
+                    print(f"Email from '{sender_name}' with subject '{item.Subject}' deemed incorrect and left unread.")
+
             print(f"Saved emails: {saved_emails}")
             print(f"Saved attachments: {saved_attachments}")
-
-            # Print subjects of emails that were not saved
-            print("Emails not saved:")
-            for subject in not_saved_subjects:
-                print(subject)
-
+            if not_saved_subjects:
+                print("Emails not saved:")
+                for subject in not_saved_subjects:
+                    print(subject)
         else:
             print("No emails were saved.")
     else:
         print(f"Could not resolve the recipient: {shared_mailbox_email}")
 
 def extract_filename_from_subject(subject):
-    # Extract filename after the first ";" character in the subject
     match = re.search(r';\s*(.*)', subject)
     if match:
         return match.group(1)
     else:
-        # If no ";" found, use the entire subject
         return subject
+
+def count_files_in_directory(directory):
+    return len([name for name in os.listdir(directory) if os.path.isfile(os.path.join(directory, name))])
 
 if __name__ == "__main__":
     outlook = win32com.client.Dispatch("Outlook.Application")
     namespace = outlook.GetNamespace("MAPI")
     namespace.Logon(your_email)
 
-    list_unread_emails(outlook, category_to_download)
+    initial_file_count = count_files_in_directory(attachment_save_path)
+    print(f"Initial number of files in '{attachment_save_path}': {initial_file_count}")
 
+    list_unread_emails(outlook, category_to_download)
     download_attachments_and_save_as_msg(outlook, category_to_download, target_senders)
 
-    print("Attachments downloaded and emails processed.")
+    final_file_count = count_files_in_directory(attachment_save_path)
+    print(f"Final number of files in '{attachment_save_path}': {final_file_count}")
+
+    if final_file_count > initial_file_count:
+        print(f"New files downloaded: {final_file_count - initial_file_count}")
+    else:
+        print("No new files were downloaded or some files might not have been saved correctly.")
