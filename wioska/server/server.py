@@ -1,57 +1,43 @@
-from flask import Flask, request, render_template_string
+from flask import Flask, render_template, request, jsonify
 import requests
+
+# Replace with your Dolphin API details
+API_URL = "http://localhost:11434/api/generate"
+MODEL_NAME = "dolphin-phi"
 
 app = Flask(__name__)
 
-HTML_TEMPLATE = """
-<!doctype html>
-<html>
-    <head><title>LLM Communication</title></head>
-    <body>
-        <h2>Enter text to send to the LLM:</h2>
-        <form method="POST">
-            <textarea name="text_input" rows="4" cols="50"></textarea><br><br>
-            <input type="submit" value="Submit">
-        </form>
-        {% if response %}
-            <h2>Response from LLM:</h2>
-            <p>{{ response }}</p>
-        {% endif %}
-        {% if error %}
-            <h2>Error:</h2>
-            <p style="color: red;">{{ error }}</p>
-        {% endif %}
-    </body>
-</html>
-"""
+@app.route("/")
+def index():
+    return render_template("index.html")
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    if request.method == 'POST':
-        text_input = request.form['text_input']
-        print(f"Text sent to LLM: {text_input}")  # Print to terminal
+@app.route("/chat", methods=["POST"])
+def chat():
+    message = request.form["message"]
 
-        url = "http://localhost:11434/api/generate"
-        payload = {"text": text_input}  # Adjust based on your LLM's API
-        headers = {"Content-Type": "application/json"}
+    data = {
+        "model": MODEL_NAME,
+        "prompt": message,
+        "stream": False,  # Assuming 'stream' is at the correct level
+        "temperature": 0.7  # Assuming 'temperature' is also expected at this level
+    }
 
-        try:
-            response = requests.post(url, json=payload, headers=headers)
-            response.raise_for_status()  # This will raise an exception for HTTP errors
+    headers = {'Content-Type': 'application/json'}
 
-            llm_response = response.text  # Or response.json() if JSON response
-            print(f"Response from LLM: {llm_response}")  # Print to terminal
-        except requests.exceptions.HTTPError as http_err:
-            print(f"HTTP error occurred: {http_err}")  # Print to terminal
-            llm_response = f"HTTP error occurred: {http_err}"
-        except Exception as err:
-            print(f"An error occurred: {err}")  # Print to terminal
-            llm_response = f"An error occurred: {err}"
+    response = requests.post(API_URL, json=data, headers=headers)
 
-        return render_template_string(HTML_TEMPLATE, response=llm_response)
-    
-    return render_template_string(HTML_TEMPLATE, response=None)
+    if response.status_code == 200:
+        response_data = response.json()
+        # Print the whole response data to check the structure
+        print("Response Data:", response_data)
 
+        # Extract the response text using the correct key, based on the API's response format
+        generated_text = response_data.get("response")  # Modify this according to your API's response structure
+        return jsonify({"message": generated_text})
+    else:
+        error_message = f"Error: Received status code {response.status_code}"
+        print(error_message, response.text)
+        return jsonify({"error": error_message})
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
