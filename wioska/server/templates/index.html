@@ -9,18 +9,42 @@
     <h1>Chat with Dolphin</h1>
     <form id="chat-form">
         <input type="text" id="message" name="message" placeholder="Enter your message">
+        <button type="button" id="mic-button">🎤</button>
         <button type="submit">Send</button>
     </form>
     <div id="chat-history"></div>
-    <script>
-        function speak(text) {
-            var msg = new SpeechSynthesisUtterance();
-            msg.text = text;
-            window.speechSynthesis.speak(msg);
-        }
-    </script>
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script>
+        // Speech to Text
+        let recognition;
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            recognition.duration = 20; // Not a standard property, for reference only
+
+            recognition.onresult = function(event) {
+                const speechToText = event.results[0][0].transcript;
+                document.getElementById('message').value = speechToText;
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error', event.error);
+            };
+        } else {
+            alert("Your browser doesn't support speech recognition. Please use a compatible browser.");
+        }
+
+        document.getElementById('mic-button').addEventListener('click', function() {
+            if (recognition) {
+                recognition.start();
+            }
+        });
+
+        // Existing send message functionality
         $("#chat-form").submit(function(event) {
             event.preventDefault();
     
@@ -46,6 +70,12 @@
                 }
             });
         });
+
+        function speak(text) {
+            var msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            window.speechSynthesis.speak(msg);
+        }
     </script>
 </body>
 </html>
