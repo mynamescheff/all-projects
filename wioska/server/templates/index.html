@@ -40,7 +40,11 @@
 
         document.getElementById('mic-button').addEventListener('click', function() {
             if (recognition) {
-                recognition.start();
+                try {
+                    recognition.start();
+                } catch (err) {
+                    alert("Microphone access was blocked. Please click the lock icon in your browser's address bar to allow access.");
+                }
             }
         });
 
