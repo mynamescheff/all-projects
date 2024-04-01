@@ -12,7 +12,12 @@
         <button type="button" id="mic-button">🎤</button>
         <button type="submit">Send</button>
     </form>
-    <div id="chat-history"></div>
+    <div id="chat-history">
+        <!-- Loop through messages and display them -->
+        {% for msg in messages %}
+            <p class="{{msg.sender}}">{{ msg.text }}</p>
+        {% endfor %}
+    </div>
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script>
         // Speech to Text
