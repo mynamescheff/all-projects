@@ -8,14 +8,15 @@
 <body>
     <h1>Chat with Dolphin</h1>
     <form id="chat-form">
-        <input type="text" id="message" name="message" placeholder="Enter your message">
-        <button type="button" id="mic-button">🎤</button>
-        <button type="submit">Send</button>
+        <!-- Adjust the style attribute as needed to change the size -->
+        <input type="text" id="message" name="message" placeholder="Enter your message" style="width: 100%; max-width: 600px; height: 50px; font-size: 20px; margin-bottom: 10px;">
+        <button type="button" id="mic-button" style="font-size: 20px; vertical-align: top;">🎤</button>
+        <button type="submit" style="font-size: 20px; vertical-align: top;">Send</button>
     </form>
     <div id="chat-history">
         <!-- Loop through messages and display them -->
         {% for msg in messages %}
-            <p class="{{msg.sender}}">{{ msg.text }}</p>
+            <p class="{{msg.sender}}" style="font-size: 16px;">{{ msg.text }}</p>
         {% endfor %}
     </div>
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
