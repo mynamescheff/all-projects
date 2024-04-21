@@ -6,23 +6,21 @@ import win32com.client
 import time
 from character_map import transform_to_swift_accepted_characters
 
-# Outlook credentials
-your_email = ''
-shared_mailbox_email = ''
+# Function to request user input for an email address
+def get_email_address(prompt):
+    return input(prompt)
 
 # Outlook category to filter emails
-category_to_download = ''
+category_to_download = 'Universities'
 
-# Target email addresses (replace with actual email addresses)
-target_senders = ['', '', '']
+# Function to confirm target senders and shared mailbox
+def confirm_details(detail_type, details):
+    confirmation = input(f"Click yes to confirm the following {detail_type}: {details}. (Y/N): ").strip().lower()
+    return confirmation == 'y'
 
-# Get the absolute path of the script
+# Path configuration
 script_path = os.path.dirname(os.path.abspath(__file__))
-
-# Path to save attachments
 attachment_save_path = os.path.join(script_path, 'outlook/excel')
-
-# Path to save Outlook messages (.msg)
 msg_save_path = os.path.join(script_path, 'outlook/msg')
 
 # Create directories if they don't exist
@@ -119,7 +117,26 @@ def count_files_in_directory(directory):
 if __name__ == "__main__":
     outlook = win32com.client.Dispatch("Outlook.Application")
     namespace = outlook.GetNamespace("MAPI")
+
+    # Input and confirm user email
+    your_email = get_email_address("Please enter your email: ")
     namespace.Logon(your_email)
+
+    # Future code placeholder for shared mailbox email input
+    shared_mailbox_email = get_email_address("Please enter the shared mailbox email: ")
+
+    # Confirm shared mailbox
+    if not confirm_details("shared mailbox", shared_mailbox_email):
+        print("Shared mailbox not confirmed. Exiting...")
+        exit()
+
+    # Target email addresses
+    target_senders = ['sender1@example.com', 'sender2@example.com', 'sender3@example.com']  # Replace with actual email addresses
+
+    # Confirm target senders
+    if not confirm_details("senders", ", ".join(target_senders)):
+        print("Senders not confirmed. Exiting...")
+        exit()
 
     initial_file_count = count_files_in_directory(attachment_save_path)
     print(f"Initial number of files in '{attachment_save_path}': {initial_file_count}")
