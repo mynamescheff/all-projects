@@ -1,0 +1,746 @@
+acc_checker.py
+
+from openpyxl import load_workbook      
+import os
+from datetime import date
+
+class ExcelComparator:
+    def __init__(self, combined_file, sprawdzacz_file):
+        self.combined_file = combined_file
+        self.sprawdzacz_file = sprawdzacz_file
+
+    def compare_and_append(self):
+        # Load the 'combined2' workbook
+        combined_workbook = load_workbook(filename=self.combined_file)
+        combined_sheet = combined_workbook['Transposed']
+
+        # Load the 'sprawdzacz' workbook
+        sprawdzacz_workbook = load_workbook(filename=self.sprawdzacz_file)
+        sprawdzacz_sheet = sprawdzacz_workbook['name_acc']
+
+        # Get the maximum row number in 'combined2' sheet
+        max_row = combined_sheet.max_row
+
+        # Create a list to store non-matching values and their corresponding filenames
+        non_matching_values = []
+        filenames = []
+
+        # Iterate over each row in 'combined2' sheet and check for matches
+        for row in range(2, max_row + 1):  # Start from row 2 to skip the header
+            case_value = combined_sheet['A' + str(row)].value
+            f_value = combined_sheet['F' + str(row)].value
+            h_value = combined_sheet['G' + str(row)].value
+
+            # Convert integer values to strings and remove spaces
+            f_value = str(f_value).replace(" ", "").replace("-", "") if f_value else ""
+            h_value = str(h_value).replace(" ", "").replace("-", "") if h_value else ""
+
+            # Check if any of the values match in 'sprawdzacz' sheet
+            found_match = False
+            for sprawdzacz_row in sprawdzacz_sheet.iter_rows(values_only=True):
+                if f_value == str(sprawdzacz_row[2]) or h_value == str(sprawdzacz_row[2]):
+                    found_match = True
+                    break
+
+            # If no match found, append the case value, f_value, h_value, and filenames to respective lists
+            if not found_match:
+                non_matching_values.append((case_value, f_value, h_value))
+                filenames.append((self.combined_file, self.sprawdzacz_file))
+
+        # Append the non-matching values and filenames to "mismatch_list.txt"
+        file_path = 'C:/IT project/mismatch/mismatch_list.txt'
+        with open(file_path, 'w', encoding="utf-8") as file:
+            current_date = date.today()
+            for value, _ in zip(non_matching_values, filenames):
+                modified_value = value[0].replace("\xa0", "").strip()
+                file.write(f"{modified_value}: {value[1]}, {value[2]} ({current_date})\n")
+
+        # Print the mismatched values with their corresponding filenames
+        print("Mismatched values:")
+        for value, _ in zip(non_matching_values, filenames):
+            modified_value = value[0].replace("\xa0", "").strip()
+            print(f"{modified_value}: {value[1]}, {value[2]} ({current_date})")
+
+        print("Non-matching values appended to mismatch_list.txt successfully.")
+
+case_checker.py
+
+import os
+from datetime import datetime
+from openpyxl import load_workbook
+
+class CaseList:
+    def __init__(self, excel_folder, list_folder):
+        self.excel_folder = excel_folder
+        self.list_folder = list_folder
+        self.unique_values = {}
+
+    def process_excel_files(self):
+        list_file_path = os.path.join(self.list_folder, "list.txt")
+
+        existing_values = {}
+
+        if os.path.isfile(list_file_path):
+            # Read the existing values from the file
+            existing_values = self.load_existing_list(list_file_path)
+
+        for file_name in os.listdir(self.excel_folder):
+            if file_name.endswith(".xlsx"):
+                file_path = os.path.join(self.excel_folder, file_name)
+                try:
+                    # Load the Excel file
+                    wb = load_workbook(file_path)
+                    sheet = wb.active
+
+                    # Extract the value from cell B17
+                    value = sheet["B17"].value
+
+                    if value in existing_values:
+                        # Check if the value has been previously added
+                        existing_values[value] = True
+                        self.unique_values[value] = file_name + " - DUPLICATE"
+                    else:
+                        existing_values[value] = False
+                        self.unique_values[value] = file_name
+
+                except Exception as e:
+                    print(f"Error processing file '{file_path}': {e}")
+
+        duplicate_values = [value for value, is_duplicate in existing_values.items() if is_duplicate]
+        if duplicate_values:
+            print(f"Alert: Duplicate values found - {duplicate_values}")
+
+        if self.unique_values:
+            # Append the values to the list file with the current date and time
+            today = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            with open(list_file_path, "a", encoding="utf-8") as file:
+                file.write(f"\n--- Updated on {today} ---\n")
+                for value, file_name in self.unique_values.items():
+                    file.write(f"{value} [{file_name}] ({today})\n")
+
+    def load_existing_list(self, list_file_path):
+        existing_values = {}
+
+        # Read the existing values from the file
+        with open(list_file_path, "r", encoding="utf-8") as file:
+            lines = file.readlines()
+
+        # Extract the values from the existing list
+        for line in lines:
+            line = line.strip()
+            if line.startswith("---"):
+                # Skip the section headers (e.g., "--- Updated on ... ---")
+                continue
+            if line:
+                parts = line.split(" [")
+                value = parts[0]
+                existing_values[value] = False
+
+        return existing_values
+
+
+
+character_map.py
+
+import re
+
+character_mapping = {
+    'á': 'a',
+    'à': 'a',
+    'â': 'a',
+    'ä': 'a',
+    'ã': 'a',
+    'å': 'a',
+    'æ': 'ae',
+    'ç': 'c',
+    'č': 'c',
+    "ć": "c",
+    'é': 'e',
+    "É": "E",
+    'è': 'e',
+    'ê': 'e',
+    'ë': 'e',
+    "ė": "e",
+    'í': 'i',
+    'ì': 'i',
+    'î': 'i',
+    'ï': 'i',
+    'ñ': 'n',
+    'ó': 'o',
+    'ò': 'o',
+    'ô': 'o',
+    'ö': 'o',
+    'õ': 'o',
+    'ø': 'o',
+    'œ': 'oe',
+    'š': 's',
+    "ß": "ss",
+    'ú': 'u',
+    'ù': 'u',
+    'û': 'u',
+    'ü': 'u',
+    'ý': 'y',
+    'ÿ': 'y',
+    'ž': 'z',
+    
+    # Add uppercase letters as well
+    'Á': 'A',
+    'À': 'A',
+    'Â': 'A',
+    'Ä': 'A',
+    'Ã': 'A',
+    'Å': 'A',
+    'Æ': 'AE',
+    'Ç': 'C',
+    'Č': 'C',
+    "Ć": "C",
+    'É': 'E',
+    'È': 'E',
+    'Ê': 'E',
+    'Ë': 'E',
+    "Ė": "E",
+    'Í': 'I',
+    'Ì': 'I',
+    'Î': 'I',
+    'Ï': 'I',
+    'Ñ': 'N',
+    'Ó': 'O',
+    'Ò': 'O',
+    'Ô': 'O',
+    'Ö': 'O',
+    'Õ': 'O',
+    'Ø': 'O',
+    'Œ': 'OE',
+    'Š': 'S',
+    'Ú': 'U',
+    'Ù': 'U',
+    'Û': 'U',
+    'Ü': 'U',
+    'Ý': 'Y',
+    'Ÿ': 'Y',
+    'Ž': 'Z',
+
+    # Additional non-standard characters
+    'æ': 'ae',
+    'Æ': 'AE',
+    'œ': 'oe',
+    'Œ': 'OE',
+    'ß': 'ss',
+    'Þ': 'th',
+    'þ': 'th',
+    'ð': 'dh',
+    'Đ': 'D',
+    'đ': 'd',
+    'ł': 'l',
+    'Ł': 'L',
+    'đ': 'd',
+    'Đ': 'D',
+    'ß': 'ss',
+    'Þ': 'th',
+    'þ': 'th',
+    'ð': 'dh',
+    'Æ': 'AE',
+    'œ': 'oe',
+    'ß': 'ss',
+    'Ø': 'O',
+    'ø': 'o',
+    'Å': 'A',
+    'å': 'a',
+}
+
+def transform_to_swift_accepted_characters(input_list):
+    transformed_list = []
+    for input_string in input_list:
+        transformed_string = re.sub(r'\b\w+\b', lambda m: ''.join(character_mapping.get(char, char) for char in m.group()), str(input_string))
+        transformed_string = re.sub(r'[.,]', '', transformed_string)  # Remove dots and commas
+        transformed_list.append(transformed_string)
+    return transformed_list
+
+
+charges_checker.py
+
+def check_file_conditions(excel_file_name, cell_b20_value, cell_c20_value):
+    is_condition_1 = cell_b20_value == 18 and cell_c20_value == "GBP"
+    is_condition_2 = "AQA" in excel_file_name.upper() and cell_b20_value == 15
+
+    if is_condition_1 or is_condition_2:
+        return True, None
+    else:
+        mismatched_values = {
+            "cell_b20_value": cell_b20_value,
+            "cell_c20_value": cell_c20_value,
+        }
+        return False, mismatched_values
+
+
+kejser.py
+
+from pathlib import Path
+from openpyxl import Workbook, load_workbook
+from openpyxl.utils import get_column_letter
+from transposer import ExcelTransposer
+from wide import Wide
+from case_checker import CaseList
+import os
+import pandas as pd
+from datetime import date
+from acc_checker import ExcelComparator
+from unidecode import unidecode
+from character_map import transform_to_swift_accepted_characters
+from charges_checker import check_file_conditions
+
+SOURCE_DIR = "C:\\IT project\\pmt_run"
+excel_files = list(Path(SOURCE_DIR).glob("*.xlsx"))
+
+mismatched_cases = []  # List to store cases where the bank charges aren't correct
+
+def clean_value(value):
+    """Clean the given value by removing spaces and '-' characters."""
+    if value is not None:
+        cleaned_value = str(value).replace(" ", "").replace("-", "")
+        return cleaned_value
+    return value
+
+for excel_file in excel_files:
+    wb = load_workbook(filename=excel_file)
+    cell_b20_value = wb[" placeholder name"]["B20"].value
+    cell_c20_value = wb[" placeholder name"]["C20"].value
+    is_condition_met, mismatched_values = check_file_conditions(excel_file.name, cell_b20_value, cell_c20_value)
+
+    if not is_condition_met:
+        # Append to mismatched_cases list
+        mismatched_cases.append((excel_file.name, mismatched_values))
+
+# Print the cases where the condition isn't met
+if mismatched_cases:
+    print("Cases with mismatched values in B20 and C20 cells:")
+    for case in mismatched_cases:
+        print(f"File: {case[0]}, Mismatched Values: {case[1]}")
+
+
+values_excel_files = {}
+for excel_file in excel_files:
+    wb = load_workbook(filename=excel_file)
+    extra_cell_1 = wb[" placeholder name"]["B19"]
+    extra_cell_2 = wb[" placeholder name"]["C19"]
+    
+    if "AQA" in excel_file.name:
+        extra_cell_3 = wb[" placeholder name"]["C24"]
+        extra_cell_4 = wb[" placeholder name"]["C25"]
+        extra_cell_5 = wb[" placeholder name"]["C26"]
+    else:
+        extra_cell_3 = wb[" placeholder name"]["C33"]
+        extra_cell_4 = wb[" placeholder name"]["C34"]
+        extra_cell_5 = wb[" placeholder name"]["C35"]
+    
+    rng_cell_1 = wb[" placeholder name"]["B16"]
+    rng_cell_2 = wb[" placeholder name"]["B17"]
+
+    rng_values = [
+        rng_cell_1.value,
+        rng_cell_2.value
+    ]
+
+    transformed_values = transform_to_swift_accepted_characters(rng_values)  # Transform the values to SWIFT-accepted characters using the separate function
+
+    extra_cell_1_value = extra_cell_1.value
+    extra_cell_2_value = extra_cell_2.value
+    extra_cell_3_value = clean_value(extra_cell_3.value)
+    extra_cell_4_value = clean_value(extra_cell_4.value)
+    extra_cell_5_value = clean_value(extra_cell_5.value)
+    transformed_rng_cell_1 = transformed_values[0]
+    transformed_rng_cell_2 = transformed_values[1]
+
+    # Add concatenated values to values_excel_files
+    values_excel_files[excel_file.name] = [
+        transformed_rng_cell_1,
+        transformed_rng_cell_2,
+        extra_cell_1_value,
+        extra_cell_2_value,
+        extra_cell_3_value,
+        extra_cell_4_value,
+        extra_cell_5_value
+    ]
+
+workbook = Workbook()
+
+worksheet = workbook.active
+
+filename = "C:\\IT project\\test\\combined2.xlsx"
+workbook.save(filename)
+
+wb = load_workbook(filename = "C:\\IT project\\test\\combined2.xlsx")
+
+header_list = [
+    "uni name",
+    "candidate name",
+    "case nr",
+    "amount",
+    "currency",
+    "acc number",
+    "iban number",
+    "swift/bic"
+]
+
+ws = wb.active
+
+# Write the header list in column A
+for i, header in enumerate(header_list):
+    ws[f"A{i+1}"] = header
+
+# Append values to the "combined" excel file starting from column B
+for i, excel_file in enumerate(values_excel_files):
+    column_letter = get_column_letter(i+2)  # Convert column index to letter
+    ws[f"{column_letter}1"] = excel_file  # Write excel file name in the first row of the column
+    for j, value in enumerate(values_excel_files[excel_file]):
+        # Check if the current value is from cell C34
+        if j == len(values_excel_files[excel_file]) - 2:
+            # Check if value is not None and not an integer before replacing spaces
+            if value is not None and not isinstance(value, int):
+                value = str(value).replace(" ", "")
+        ws[f"{column_letter}{j+2}"] = value
+
+
+wb.save("C:\\IT project\\test\\combined2.xlsx")
+
+filename = "C:\\IT project\\test\\combined2.xlsx"
+transposer = ExcelTransposer(filename)
+transposer.transpose_cells_to_table()
+
+# Adjust column width
+wide = Wide(filename, "Transposed")
+wide.auto_adjust_column_width()
+
+
+excel_folder = "C:\\IT project\\pmt_run"
+list_folder = "C:\\IT project\\case_list"
+
+case_list = CaseList(excel_folder, list_folder)
+case_list.process_excel_files()
+
+comparator = ExcelComparator("C:\\IT project\\test\\combined2.xlsx", "C:\\IT project\\sprawdzacz.xlsx")
+comparator.compare_and_append()
+
+
+
+transposer.py
+
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+
+
+class ExcelTransposer:
+    def __init__(self, filename):
+        self.filename = filename
+        self.workbook = load_workbook(filename)
+        self.sheet = self.workbook.active
+    
+    def transpose_cells_to_table(self):
+        data = []
+        
+        # Iterate over the rows and columns to collect the data
+        for row in self.sheet.iter_rows(values_only=True):
+            data.append(row)
+        
+        # Transpose the data
+        transposed_data = list(map(list, zip(*data)))
+        
+        # Write the transposed data to a new sheet
+        transposed_sheet = self.workbook.create_sheet(title="Transposed")
+        for row_idx, row_data in enumerate(transposed_data):
+            for col_idx, cell_value in enumerate(row_data):
+                column_letter = get_column_letter(col_idx + 1)
+                transposed_sheet[f"{column_letter}{row_idx + 1}"] = cell_value
+        
+        # Save the workbook with the transposed data
+        self.workbook.save(self.filename)
+        print("Transposed data saved successfully.")
+
+
+wide.py
+
+from openpyxl import load_workbook
+from openpyxl.utils import get_column_letter
+
+
+class Wide:
+    def __init__(self, file_path, sheet_name):
+        self.file_path = file_path
+        self.sheet_name = sheet_name
+
+    def auto_adjust_column_width(self):
+        # Load the Excel workbook
+        workbook = load_workbook(self.file_path)
+        sheet = workbook[self.sheet_name]
+
+        # Select the whole table
+        table_range = sheet.dimensions
+
+        # Auto adjust column width
+        for column in sheet.columns:
+            max_length = 0
+            column = [cell for cell in column]
+            for cell in column:
+                try:
+                    if len(str(cell.value)) > max_length:
+                        max_length = len(cell.value)
+                except:
+                    pass
+            adjusted_width = (max_length + 2) * 1.2
+            sheet.column_dimensions[get_column_letter(column[0].column)].width = adjusted_width
+
+        # Save the modified workbook
+        workbook.save(self.file_path)
+
+email_dl.py
+
+import os
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import re
+import win32com.client
+import time
+from character_map import transform_to_swift_accepted_characters
+
+# Function to request user input for an email address
+def get_email_address(prompt):
+    return input(prompt)
+
+# Outlook category to filter emails
+category_to_download = 'Universities'
+
+# Function to confirm target senders and shared mailbox
+def confirm_details(detail_type, details):
+    confirmation = input(f"Click yes to confirm the following {detail_type}: {details}. (Y/N): ").strip().lower()
+    return confirmation == 'y'
+
+# Path configuration
+script_path = os.path.dirname(os.path.abspath(__file__))
+attachment_save_path = os.path.join(script_path, 'outlook/excel')
+msg_save_path = os.path.join(script_path, 'outlook/msg')
+
+# Create directories if they don't exist
+os.makedirs(attachment_save_path, exist_ok=True)
+os.makedirs(msg_save_path, exist_ok=True)
+
+def list_unread_emails(outlook, category):
+    namespace = outlook.GetNamespace("MAPI")
+    recipient = namespace.CreateRecipient(shared_mailbox_email)
+    recipient.Resolve()
+
+    if recipient.Resolved:
+        shared_mailbox = namespace.GetSharedDefaultFolder(recipient, 6)  # 6 corresponds to the Inbox folder
+        unread_emails = shared_mailbox.Items.Restrict(f"[Categories] = '{category}' AND [UnRead] = True")
+        num_unread_emails = len([email for email in unread_emails])  # Convert to list and get the length
+        print(f"Number of unread emails in the '{category}' category: {num_unread_emails}")
+
+def get_unique_filename(base_path, original_filename, extension):
+    counter = 2
+    new_filename = original_filename
+    while os.path.exists(os.path.join(base_path, f"{new_filename}{extension}")):
+        new_filename = f"{original_filename} {counter}"
+        counter += 1
+    return new_filename
+
+def download_attachments_and_save_as_msg(outlook, category, target_senders):
+    namespace = outlook.GetNamespace("MAPI")
+    recipient = namespace.CreateRecipient(shared_mailbox_email)
+    recipient.Resolve()
+
+    if recipient.Resolved:
+        shared_mailbox = namespace.GetSharedDefaultFolder(recipient, 6)  # Inbox
+        unread_emails = shared_mailbox.Items.Restrict(f"[Categories] = '{category}' AND [UnRead] = True")
+        emails_to_process = [email for email in unread_emails]
+
+        save_confirmation = input("Do you want to save these emails? (Y/N): ").strip().lower()
+
+        if save_confirmation == 'y':
+            saved_emails = 0
+            saved_attachments = 0
+            not_saved_subjects = []
+
+            for item in emails_to_process:
+                email_is_correct = False  # Assume email is incorrect initially
+                try:
+                    sender_name_match = re.search(r'\/O=EXCHANGELABS\/OU=EXCHANGE ADMINISTRATIVE GROUP.*?-([A-Za-z]+)', item.SenderEmailAddress)
+                    sender_name = sender_name_match.group(1) if sender_name_match else item.SenderEmailAddress
+                    if sender_name.lower() in [sender.lower() for sender in target_senders]:
+                        if item.Attachments.Count > 0:
+                            for attachment in item.Attachments:
+                                if attachment.FileName.lower().endswith('.xlsx'):
+                                    new_filename = extract_filename_from_subject(item.Subject)
+                                    new_filename = transform_to_swift_accepted_characters([new_filename])[0]
+                                    new_filename = re.sub(r'[\/:*?"<>|\t]', ' ', new_filename)
+                                    new_filename = re.sub(r'[^A-Za-z0-9\s\-\–;]', '', new_filename)
+                                    if ';' in new_filename or ';' in item.Subject:
+                                        email_is_correct = True
+                                        unique_attachment_filename = get_unique_filename(attachment_save_path, new_filename, '.xlsx')
+                                        attachment_path = os.path.join(attachment_save_path, f"{unique_attachment_filename}.xlsx")
+                                        attachment.SaveAsFile(attachment_path)
+                                        saved_attachments += 1
+                except Exception as e:
+                    print(f"Error processing email: {e}")
+                    not_saved_subjects.append(item.Subject)
+
+                if email_is_correct:
+                    item.UnRead = False
+                    item.Save()
+                    saved_emails += 1
+                else:
+                    print(f"Email from '{sender_name}' with subject '{item.Subject}' deemed incorrect and left unread.")
+
+            print(f"Saved emails: {saved_emails}")
+            print(f"Saved attachments: {saved_attachments}")
+            if not_saved_subjects:
+                print("Emails not saved:")
+                for subject in not_saved_subjects:
+                    print(subject)
+        else:
+            print("No emails were saved.")
+    else:
+        print(f"Could not resolve the recipient: {shared_mailbox_email}")
+
+def extract_filename_from_subject(subject):
+    match = re.search(r';\s*(.*)', subject)
+    if match:
+        return match.group(1)
+    else:
+        return subject
+
+def count_files_in_directory(directory):
+    return len([name for name in os.listdir(directory) if os.path.isfile(os.path.join(directory, name))])
+
+if __name__ == "__main__":
+    outlook = win32com.client.Dispatch("Outlook.Application")
+    namespace = outlook.GetNamespace("MAPI")
+
+    # Input and confirm user email
+    your_email = get_email_address("Please enter your email: ")
+    namespace.Logon(your_email)
+
+    # Future code placeholder for shared mailbox email input
+    shared_mailbox_email = get_email_address("Please enter the shared mailbox email: ")
+
+    # Confirm shared mailbox
+    if not confirm_details("shared mailbox", shared_mailbox_email):
+        print("Shared mailbox not confirmed. Exiting...")
+        exit()
+
+    # Target email addresses
+    target_senders = ['sender1@example.com', 'sender2@example.com', 'sender3@example.com']  # Replace with actual email addresses
+
+    # Confirm target senders
+    if not confirm_details("senders", ", ".join(target_senders)):
+        print("Senders not confirmed. Exiting...")
+        exit()
+
+    initial_file_count = count_files_in_directory(attachment_save_path)
+    print(f"Initial number of files in '{attachment_save_path}': {initial_file_count}")
+
+    list_unread_emails(outlook, category_to_download)
+    download_attachments_and_save_as_msg(outlook, category_to_download, target_senders)
+
+    final_file_count = count_files_in_directory(attachment_save_path)
+    print(f"Final number of files in '{attachment_save_path}': {final_file_count}")
+
+    if final_file_count > initial_file_count:
+        print(f"New files downloaded: {final_file_count - initial_file_count}")
+    else:
+        print("No new files were downloaded or some files might not have been saved correctly.")
+
+
+how can I import the above python files into the following, GUI hub for them (below)? you can disregard the part 1 and part 2 sections, as these are only the placeholders. Also, please modify the above other files I've provided so that they have a well visible function I can import to this main hub app file
+
+test_app.py
+
+import tkinter as tk
+from tkinter import messagebox
+import threading
+
+# Import your script's main functionality
+# from your_script import main_functionality
+
+def run_script():
+    try:
+        # Check the state of the checkboxes and run parts of the script accordingly
+        if option1_var.get():
+            threading.Thread(target=part1_functionality).start()
+        if option2_var.get():
+            threading.Thread(target=part2_functionality).start()
+        
+        messagebox.showinfo("Success", "Selected script parts are running in the background!")
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
+
+def part1_functionality():
+    # Implement the functionality for part 1
+    pass
+
+def part2_functionality():
+    # Implement the functionality for part 2
+    pass
+
+def create_notes_window():
+    # Create a new top-level window for notes
+    notes_window = tk.Toplevel()
+    notes_window.title("Notes")
+    notes_window.geometry("300x200")  # Width x Height
+    notes_window.resizable(True, True)  # Allow resizing
+
+    # Add a text widget for notes
+    text_widget = tk.Text(notes_window, height=10, width=30)
+    text_widget.pack(padx=10, pady=10)
+
+    # Insert any default text or load notes from a file if necessary
+    text_widget.insert(tk.END, "Place your notes here...")
+
+def create_instructions_window():
+    # Create a new top-level window for instructions
+    instructions_window = tk.Toplevel()
+    instructions_window.title("Instructions")
+    instructions_window.geometry("300x200")  # Width x Height
+    instructions_window.resizable(False, False)  # Disable resizing
+
+    # Add a text widget for instructions, make it read-only
+    text_widget = tk.Text(instructions_window, height=10, width=30, wrap=tk.WORD)
+    text_widget.pack(padx=10, pady=10)
+    text_widget.insert(tk.END, "Follow these instructions...\n1. Do X\n2. Do Y\n3. Don't forget Z")
+    text_widget.config(state=tk.DISABLED)  # Make the text widget non-editable
+
+def create_ui():
+    global option1_var, option2_var
+    root = tk.Tk()
+    root.title("Email Attachment Downloader")
+
+    # Configure the main window
+    root.geometry("400x350")  # Width x Height
+    root.resizable(False, False)  # Disable resizing
+
+    # Variables to track checkbox states
+    option1_var = tk.BooleanVar()
+    option2_var = tk.BooleanVar()
+
+    # Add checkboxes to control parts of the script
+    option1_checkbox = tk.Checkbutton(root, text="Run Part 1", variable=option1_var)
+    option1_checkbox.pack(pady=5)
+
+    option2_checkbox = tk.Checkbutton(root, text="Run Part 2", variable=option2_var)
+    option2_checkbox.pack(pady=5)
+
+    # Add a button to run the script
+    run_button = tk.Button(root, text="Download Attachments", command=run_script)
+    run_button.pack(pady=20)
+
+    # Button to open notes window
+    notes_button = tk.Button(root, text="Open Notes", command=create_notes_window)
+    notes_button.pack(pady=10)
+
+    # Button to open instructions window
+    instructions_button = tk.Button(root, text="Open Instructions", command=create_instructions_window)
+    instructions_button.pack(pady=10)
+
+    # Start the GUI event loop
+    root.mainloop()
+
+if __name__ == "__main__":
+    create_ui()
