@@ -1,6 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
 import threading
+from charges_checker import check_file_conditions
+from email_dl import setup_outlook_session, download_attachments_and_save_as_msg
+from acc_checker import ExcelComparator
+from case_checker import CaseList
 
 # Import your script's main functionality
 # from your_script import main_functionality
@@ -17,9 +21,57 @@ def run_script():
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
 
+def download_emails():
+    email_address = "your_email@example.com"  # Get this from GUI input
+    shared_mailbox_email = "shared_mailbox@example.com"  # Get this from GUI input
+    category = "Universities"
+    target_senders = ['sender1@example.com', 'sender2@example.com']
+    save_confirmation = True  # Controlled by a GUI checkbox or similar
+
+    outlook = setup_outlook_session(email_address)
+    saved_emails, saved_attachments, error = download_attachments_and_save_as_msg(outlook, shared_mailbox_email, category, target_senders, save_confirmation)
+    
+    if error:
+        messagebox.showerror("Error", error)
+    else:
+        messagebox.showinfo("Success", f"{saved_emails} emails processed and {saved_attachments} attachments saved.")
+
+
+def run_case_list():
+    excel_folder = "path_to_excel_folder"
+    list_folder = "path_to_list_folder"
+
+    case_list = CaseList(excel_folder, list_folder)
+    duplicates, unique_values, errors = case_list.process_excel_files()
+
+    if errors:
+        messagebox.showerror("Error", "\n".join(errors))
+    if duplicates:
+        messagebox.showinfo("Duplicates Found", f"Duplicate values found: {len(duplicates)}")
+    else:
+        messagebox.showinfo("Success", "No duplicates found. All unique values processed successfully.")
+
 def part1_functionality():
-    # Implement the functionality for part 1
-    pass
+    # Directly use the imported function
+    result, mismatch = check_file_conditions("example.xlsx", 18, "GBP")
+    if result:
+        print("Conditions met.")
+    else:
+        print(f"Mismatch found: {mismatch}")
+
+def run_comparator():
+    combined_file = "path_to_combined_file.xlsx"
+    sprawdzacz_file = "path_to_sprawdzacz_file.xlsx"
+    output_path = "C:/IT project/mismatch"
+
+    comparator = ExcelComparator(combined_file, sprawdzacz_file, output_path)
+    non_matching_values, message = comparator.compare_and_append()
+
+    if non_matching_values:
+        messagebox.showinfo("Results", f"Mismatches found: {len(non_matching_values)}")
+    else:
+        messagebox.showinfo("Results", "No mismatches found.")
+    messagebox.showinfo("Log", message)
 
 def part2_functionality():
     # Implement the functionality for part 2
