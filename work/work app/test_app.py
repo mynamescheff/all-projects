@@ -6,27 +6,16 @@ from email_dl import setup_outlook_session, download_attachments_and_save_as_msg
 from acc_checker import ExcelComparator
 from case_checker import CaseList
 
-# Import your script's main functionality
-# from your_script import main_functionality
-
 def run_script():
-    try:
-        # Check the state of the checkboxes and run parts of the script accordingly
-        if option1_var.get():
-            threading.Thread(target=part1_functionality).start()
-        if option2_var.get():
-            threading.Thread(target=part2_functionality).start()
-        
-        messagebox.showinfo("Success", "Selected script parts are running in the background!")
-    except Exception as e:
-        messagebox.showerror("Error", f"An error occurred: {e}")
+    # Placeholder for general script runs if needed
+    messagebox.showinfo("Information", "Running the main script!")
 
 def download_emails():
-    email_address = "your_email@example.com"  # Get this from GUI input
-    shared_mailbox_email = "shared_mailbox@example.com"  # Get this from GUI input
+    email_address = "your_email@example.com"  # This could be set via a dialog input in future
+    shared_mailbox_email = "shared_mailbox@example.com"  # This could be set via a dialog input in future
     category = "Universities"
     target_senders = ['sender1@example.com', 'sender2@example.com']
-    save_confirmation = True  # Controlled by a GUI checkbox or similar
+    save_confirmation = True  # This could be set via a GUI toggle
 
     outlook = setup_outlook_session(email_address)
     saved_emails, saved_attachments, error = download_attachments_and_save_as_msg(outlook, shared_mailbox_email, category, target_senders, save_confirmation)
@@ -35,7 +24,6 @@ def download_emails():
         messagebox.showerror("Error", error)
     else:
         messagebox.showinfo("Success", f"{saved_emails} emails processed and {saved_attachments} attachments saved.")
-
 
 def run_case_list():
     excel_folder = "path_to_excel_folder"
@@ -51,13 +39,13 @@ def run_case_list():
     else:
         messagebox.showinfo("Success", "No duplicates found. All unique values processed successfully.")
 
-def part1_functionality():
-    # Directly use the imported function
+def check_conditions():
+    # Example functionality to check conditions
     result, mismatch = check_file_conditions("example.xlsx", 18, "GBP")
     if result:
-        print("Conditions met.")
+        messagebox.showinfo("Success", "Conditions met.")
     else:
-        print(f"Mismatch found: {mismatch}")
+        messagebox.showinfo("Mismatch", f"Mismatch found: {mismatch}")
 
 def run_comparator():
     combined_file = "path_to_combined_file.xlsx"
@@ -73,70 +61,47 @@ def run_comparator():
         messagebox.showinfo("Results", "No mismatches found.")
     messagebox.showinfo("Log", message)
 
-def part2_functionality():
-    # Implement the functionality for part 2
-    pass
-
 def create_notes_window():
-    # Create a new top-level window for notes
     notes_window = tk.Toplevel()
     notes_window.title("Notes")
-    notes_window.geometry("300x200")  # Width x Height
-    notes_window.resizable(True, True)  # Allow resizing
-
-    # Add a text widget for notes
+    notes_window.geometry("300x200")
     text_widget = tk.Text(notes_window, height=10, width=30)
     text_widget.pack(padx=10, pady=10)
-
-    # Insert any default text or load notes from a file if necessary
     text_widget.insert(tk.END, "Place your notes here...")
 
 def create_instructions_window():
-    # Create a new top-level window for instructions
     instructions_window = tk.Toplevel()
     instructions_window.title("Instructions")
-    instructions_window.geometry("300x200")  # Width x Height
-    instructions_window.resizable(False, False)  # Disable resizing
-
-    # Add a text widget for instructions, make it read-only
+    instructions_window.geometry("300x200")
     text_widget = tk.Text(instructions_window, height=10, width=30, wrap=tk.WORD)
     text_widget.pack(padx=10, pady=10)
     text_widget.insert(tk.END, "Follow these instructions...\n1. Do X\n2. Do Y\n3. Don't forget Z")
-    text_widget.config(state=tk.DISABLED)  # Make the text widget non-editable
+    text_widget.config(state=tk.DISABLED)
 
 def create_ui():
-    global option1_var, option2_var
     root = tk.Tk()
-    root.title("Email Attachment Downloader")
+    root.title("Operations Dashboard")
+    root.geometry("400x350")
+    root.resizable(False, False)
 
-    # Configure the main window
-    root.geometry("400x350")  # Width x Height
-    root.resizable(False, False)  # Disable resizing
+    download_button = tk.Button(root, text="Download Emails", command=download_emails)
+    download_button.pack(pady=10)
 
-    # Variables to track checkbox states
-    option1_var = tk.BooleanVar()
-    option2_var = tk.BooleanVar()
+    case_list_button = tk.Button(root, text="Check Case List", command=run_case_list)
+    case_list_button.pack(pady=10)
 
-    # Add checkboxes to control parts of the script
-    option1_checkbox = tk.Checkbutton(root, text="Run Part 1", variable=option1_var)
-    option1_checkbox.pack(pady=5)
+    check_conditions_button = tk.Button(root, text="Check Conditions", command=check_conditions)
+    check_conditions_button.pack(pady=10)
 
-    option2_checkbox = tk.Checkbutton(root, text="Run Part 2", variable=option2_var)
-    option2_checkbox.pack(pady=5)
+    comparator_button = tk.Button(root, text="Run Comparator", command=run_comparator)
+    comparator_button.pack(pady=10)
 
-    # Add a button to run the script
-    run_button = tk.Button(root, text="Download Attachments", command=run_script)
-    run_button.pack(pady=20)
-
-    # Button to open notes window
     notes_button = tk.Button(root, text="Open Notes", command=create_notes_window)
     notes_button.pack(pady=10)
 
-    # Button to open instructions window
     instructions_button = tk.Button(root, text="Open Instructions", command=create_instructions_window)
     instructions_button.pack(pady=10)
 
-    # Start the GUI event loop
     root.mainloop()
 
 if __name__ == "__main__":
