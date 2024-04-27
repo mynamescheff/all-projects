@@ -61,22 +61,44 @@ def run_comparator():
         messagebox.showinfo("Results", "No mismatches found.")
     messagebox.showinfo("Log", message)
 
+notes_window = None
+notes_content = ""  # Variable to store notes content across sessions
+instructions_window = None
+
 def create_notes_window():
-    notes_window = tk.Toplevel()
-    notes_window.title("Notes")
-    notes_window.geometry("300x200")
-    text_widget = tk.Text(notes_window, height=10, width=30)
-    text_widget.pack(padx=10, pady=10)
-    text_widget.insert(tk.END, "Place your notes here...")
+    global notes_window, notes_content
+    if not notes_window or not tk.Toplevel.winfo_exists(notes_window):
+        notes_window = tk.Toplevel()
+        notes_window.title("Notes")
+        notes_window.geometry("300x200")
+        notes_window.resizable(True, True)
+        
+        text_widget = tk.Text(notes_window, height=10, width=30)
+        text_widget.pack(padx=10, pady=10)
+        text_widget.insert(tk.END, notes_content)  # Populate text widget with stored notes
+
+        # Update notes_content when the window is closed using the text from the widget
+        def on_closing():
+            global notes_content
+            notes_content = text_widget.get("1.0", tk.END)  # Update the stored notes content
+            notes_window.destroy()
+
+        notes_window.protocol("WM_DELETE_WINDOW", on_closing)
 
 def create_instructions_window():
-    instructions_window = tk.Toplevel()
-    instructions_window.title("Instructions")
-    instructions_window.geometry("300x200")
-    text_widget = tk.Text(instructions_window, height=10, width=30, wrap=tk.WORD)
-    text_widget.pack(padx=10, pady=10)
-    text_widget.insert(tk.END, "Follow these instructions...\n1. Do X\n2. Do Y\n3. Don't forget Z")
-    text_widget.config(state=tk.DISABLED)
+    global instructions_window
+    if not instructions_window or not tk.Toplevel.winfo_exists(instructions_window):
+        instructions_window = tk.Toplevel()
+        instructions_window.title("Instructions")
+        instructions_window.geometry("300x200")
+        instructions_window.resizable(False, False)
+
+        text_widget = tk.Text(instructions_window, height=10, width=30, wrap=tk.WORD)
+        text_widget.pack(padx=10, pady=10)
+        text_widget.insert(tk.END, "Follow these instructions...\n1. Do X\n2. Do Y\n3. Don't forget Z")
+        text_widget.config(state=tk.DISABLED)
+
+        instructions_window.protocol("WM_DELETE_WINDOW", instructions_window.destroy)
 
 def create_ui():
     root = tk.Tk()
@@ -84,16 +106,17 @@ def create_ui():
     root.geometry("400x350")
     root.resizable(False, False)
 
-    download_button = tk.Button(root, text="Download Emails", command=download_emails)
+    # Define buttons and assign commands
+    download_button = tk.Button(root, text="Download Emails", command=lambda: print("Downloading Emails"))
     download_button.pack(pady=10)
 
-    case_list_button = tk.Button(root, text="Check Case List", command=run_case_list)
+    case_list_button = tk.Button(root, text="Check Case List", command=lambda: print("Checking Case List"))
     case_list_button.pack(pady=10)
 
-    check_conditions_button = tk.Button(root, text="Check Conditions", command=check_conditions)
+    check_conditions_button = tk.Button(root, text="Check Conditions", command=lambda: print("Checking Conditions"))
     check_conditions_button.pack(pady=10)
 
-    comparator_button = tk.Button(root, text="Run Comparator", command=run_comparator)
+    comparator_button = tk.Button(root, text="Run Comparator", command=lambda: print("Running Comparator"))
     comparator_button.pack(pady=10)
 
     notes_button = tk.Button(root, text="Open Notes", command=create_notes_window)
