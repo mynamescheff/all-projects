@@ -2,11 +2,10 @@ import tkinter as tk
 from tkinter import messagebox
 import threading
 
-# Assume these are the necessary imports for your functionalities
-# from charges_checker import check_file_conditions
-# from email_dl import setup_outlook_session, download_attachments_and_save_as_msg
-# from acc_checker import ExcelComparator
-# from case_checker import CaseList
+from charges_checker import check_file_conditions
+from email_dl import setup_outlook_session, download_attachments_and_save_as_msg
+from acc_checker import ExcelComparator
+from case_checker import CaseList
 
 notes_window = None
 instructions_window = None
@@ -95,7 +94,15 @@ def create_instructions_window():
 def create_ui():
     root = tk.Tk()
     root.title("Operations Dashboard")
-    root.geometry("400x350")
+    
+    # Set a minimum size for the window to prevent making it too small.
+    min_width, min_height = 300, 250
+    root.minsize(min_width, min_height)
+    
+    # The geometry method sets the initial size of the window.
+    # If you want to start with the minimum size, you can skip this line.
+    root.geometry(f"{min_width}x{min_height}")
+    root.resizable(True, True)  # Allow resizing but with restrictions set by minsize
 
     download_button = tk.Button(root, text="Download Emails", command=download_emails)
     download_button.pack(pady=10)
