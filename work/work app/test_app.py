@@ -11,21 +11,6 @@ notes_window = None
 instructions_window = None
 notes_content = ""
 
-def download_emails():
-    email_address = "your_email@example.com"
-    shared_mailbox_email = "shared_mailbox@example.com"
-    category = "Universities"
-    target_senders = ['sender1@example.com', 'sender2@example.com']
-    save_confirmation = True
-
-    outlook = setup_outlook_session(email_address)
-    saved_emails, saved_attachments, error = download_attachments_and_save_as_msg(outlook, shared_mailbox_email, category, target_senders, save_confirmation)
-    
-    if error:
-        messagebox.showerror("Error", error)
-    else:
-        messagebox.showinfo("Success", f"{saved_emails} emails processed and {saved_attachments} attachments saved.")
-
 def process_all_cases():
     threading.Thread(target=run_case_list).start()
     threading.Thread(target=check_conditions).start()
@@ -94,6 +79,34 @@ def create_instructions_window():
 def create_ui():
     root = tk.Tk()
     root.title("Operations Dashboard")
+    root.minsize(300, 250)
+    root.geometry("300x250")
+    root.resizable(True, True)
+
+    # Checkbox for marking emails as read
+    mark_as_read_var = tk.BooleanVar(value=False)
+    mark_as_read_checkbox = tk.Checkbutton(root, text="Mark emails as read", variable=mark_as_read_var)
+    mark_as_read_checkbox.pack(pady=10)
+
+    # Button for downloading emails
+    def download_emails():
+        email_address = "your_email@example.com"
+        shared_mailbox_email = "shared_mailbox@example.com"
+        category = "Universities"
+        target_senders = ['sender1@example.com', 'sender2@example.com']
+        save_confirmation = True
+
+        outlook = setup_outlook_session(email_address)
+        saved_emails, saved_attachments, error = download_attachments_and_save_as_msg(
+            outlook, shared_mailbox_email, category, target_senders, save_confirmation, mark_as_read_var.get())
+        
+        if error:
+            messagebox.showerror("Error", error)
+        else:
+            messagebox.showinfo("Success", f"{saved_emails} emails processed and {saved_attachments} attachments saved.")
+
+    download_button = tk.Button(root, text="Download Emails", command=download_emails)
+    download_button.pack(pady=10)
     
     # Set a minimum size for the window to prevent making it too small.
     min_width, min_height = 300, 250
@@ -103,9 +116,6 @@ def create_ui():
     # If you want to start with the minimum size, you can skip this line.
     root.geometry(f"{min_width}x{min_height}")
     root.resizable(True, True)  # Allow resizing but with restrictions set by minsize
-
-    download_button = tk.Button(root, text="Download Emails", command=download_emails)
-    download_button.pack(pady=10)
 
     process_button = tk.Button(root, text="Process All Cases", command=process_all_cases)
     process_button.pack(pady=10)

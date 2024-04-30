@@ -26,14 +26,11 @@ def list_unread_emails(outlook, shared_mailbox_email, category):
         return unread_emails, None
     return None, "Could not resolve the recipient."
 
-def download_attachments_and_save_as_msg(outlook, shared_mailbox_email, category, target_senders, save_confirmation):
+def download_attachments_and_save_as_msg(outlook, shared_mailbox_email, category, target_senders, save_confirmation, mark_as_read):
     try:
         emails, error = list_unread_emails(outlook, shared_mailbox_email, category)
         if error:
             return 0, 0, error
-
-        if not save_confirmation:
-            return 0, 0, "No emails were saved as operation was not confirmed."
 
         saved_emails = 0
         saved_attachments = 0
@@ -45,9 +42,10 @@ def download_attachments_and_save_as_msg(outlook, shared_mailbox_email, category
                         attachment_path = os.path.join(attachment_save_path, attachment.FileName)
                         attachment.SaveAsFile(attachment_path)
                         saved_attachments += 1
-                email.UnRead = False
-                email.Save()
-                saved_emails += 1
+                if mark_as_read:
+                    email.UnRead = False
+                    email.Save()
+                    saved_emails += 1
         return saved_emails, saved_attachments, None
     except Exception as e:
         return 0, 0, f"Error processing emails: {str(e)}"
