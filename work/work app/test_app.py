@@ -50,18 +50,27 @@ def run_comparator():
     messagebox.showinfo("Log", message)
 
 def create_notes_window():
-    global notes_window
+    global notes_window, notes_content
     if not notes_window or not tk.Toplevel.winfo_exists(notes_window):
         notes_window = tk.Toplevel()
         notes_window.title("Notes")
         notes_window.geometry("300x200")
+        notes_window.resizable(True, True)
+
         text_widget = tk.Text(notes_window, height=10, width=30)
         text_widget.pack(padx=10, pady=10)
         text_widget.insert(tk.END, notes_content)
+
+        # Function to call when closing the window
         def on_closing():
             global notes_content
-            notes_content = text_widget.get("1.0", tk.END)
+            notes_content = text_widget.get("1.0", tk.END)  # Update the stored notes content
             notes_window.destroy()
+            notes_window = None  # Reset the global variable
+
+        # Bind the Escape key to the on_closing function
+        notes_window.bind("<Escape>", lambda event: on_closing())
+
         notes_window.protocol("WM_DELETE_WINDOW", on_closing)
 
 def create_instructions_window():
@@ -105,17 +114,22 @@ def create_ui():
         else:
             messagebox.showinfo("Success", f"{saved_emails} emails processed and {saved_attachments} attachments saved.")
 
-    download_button = tk.Button(root, text="Download Emails", command=download_emails)
-    download_button.pack(pady=10)
-    
     # Set a minimum size for the window to prevent making it too small.
     min_width, min_height = 300, 250
     root.minsize(min_width, min_height)
     
+    # Set a maximum size for the window to prevent making it too large.
+    max_width, max_height = 600, 500
+    root.maxsize(max_width, max_height)
+    
     # The geometry method sets the initial size of the window.
-    # If you want to start with the minimum size, you can skip this line.
-    root.geometry(f"{min_width}x{min_height}")
-    root.resizable(True, True)  # Allow resizing but with restrictions set by minsize
+    # Adjusting it to start within the min and max size constraints.
+    initial_width, initial_height = 400, 350
+    root.geometry(f"{initial_width}x{initial_height}")
+    root.resizable(True, True)  # Allow resizing but within the restrictions set by minsize and maxsize
+
+    download_button = tk.Button(root, text="Download Emails", command=download_emails)
+    download_button.pack(pady=10)
 
     process_button = tk.Button(root, text="Process All Cases", command=process_all_cases)
     process_button.pack(pady=10)
@@ -127,6 +141,7 @@ def create_ui():
     instructions_button.pack(pady=10)
 
     root.mainloop()
+
 
 if __name__ == "__main__":
     create_ui()
