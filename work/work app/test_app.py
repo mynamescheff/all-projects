@@ -50,7 +50,7 @@ def run_comparator():
     messagebox.showinfo("Log", message)
 
 def create_notes_window():
-    global notes_window, notes_content
+    global notes_window, notes_content  # Ensure notes_window is declared as global
     if not notes_window or not tk.Toplevel.winfo_exists(notes_window):
         notes_window = tk.Toplevel()
         notes_window.title("Notes")
@@ -61,12 +61,12 @@ def create_notes_window():
         text_widget.pack(padx=10, pady=10)
         text_widget.insert(tk.END, notes_content)
 
-        # Function to call when closing the window
+        # Function to call when the window is to be closed
         def on_closing():
-            global notes_content
+            global notes_window, notes_content  # Declare as global within the function
             notes_content = text_widget.get("1.0", tk.END)  # Update the stored notes content
             notes_window.destroy()
-            notes_window = None  # Reset the global variable
+            notes_window = None  # Reset the global variable to None after destruction
 
         # Bind the Escape key to the on_closing function
         notes_window.bind("<Escape>", lambda event: on_closing())
