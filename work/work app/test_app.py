@@ -72,6 +72,7 @@ def create_notes_window():
         notes_window.bind("<Escape>", lambda event: on_closing())
 
         notes_window.protocol("WM_DELETE_WINDOW", on_closing)
+        notes_window.focus_set()  # Set focus on the Notes window
 
 def create_instructions_window():
     global instructions_window
@@ -83,8 +84,20 @@ def create_instructions_window():
         text_widget.pack(padx=10, pady=10)
         text_widget.insert(tk.END, "Follow these instructions...\n1. Do X\n2. Do Y\n3. Don't forget Z")
         text_widget.config(state=tk.DISABLED)
-        instructions_window.protocol("WM_DELETE_WINDOW", instructions_window.destroy)
 
+        # Function to handle window closure
+        def on_closing():
+            global instructions_window
+            instructions_window.destroy()
+            instructions_window = None  # Reset the global variable to None after destruction
+
+        # Bind the Escape key to the on_closing function
+        instructions_window.bind("<Escape>", lambda event: on_closing())
+
+        instructions_window.protocol("WM_DELETE_WINDOW", on_closing)
+
+        instructions_window.focus_set()  # Set focus on the Instructions window
+        
 def create_ui():
     root = tk.Tk()
     root.title("Operations Dashboard")
