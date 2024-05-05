@@ -7,6 +7,9 @@ from email_dl import setup_outlook_session, download_attachments_and_save_as_msg
 from acc_checker import ExcelComparator
 from case_checker import CaseList
 
+# Global variable to track if the notes window is opened for the first time
+notes_first_time = True
+
 notes_window = None
 instructions_window = None
 notes_content = ""
@@ -50,29 +53,44 @@ def run_comparator():
     messagebox.showinfo("Log", message)
 
 def create_notes_window():
-    global notes_window, notes_content  # Ensure notes_window is declared as global
+    global notes_window, notes_content, notes_first_time
     if not notes_window or not tk.Toplevel.winfo_exists(notes_window):
         notes_window = tk.Toplevel()
         notes_window.title("Notes")
-        notes_window.geometry("300x200")
+        
+        # Set the position of the notes window relative to the main window
+        # You can adjust '200+50' to control the position more precisely as needed
+        notes_window.geometry("300x200+200+50")
+        
         notes_window.resizable(True, True)
+        notes_window.minsize(150, 100)  # Set minimum size
+        notes_window.maxsize(600, 400)  # Set maximum size
 
-        text_widget = tk.Text(notes_window, height=10, width=30)
-        text_widget.pack(padx=10, pady=10)
+        text_widget = tk.Text(notes_window, wrap=tk.WORD)  # Wrap text at word boundaries
+        text_widget.grid(row=0, column=0, sticky='nsew')  # Make text widget expandable
+
+        # Configure the grid layout to expand the text area proportionally with the window
+        notes_window.grid_rowconfigure(0, weight=1)
+        notes_window.grid_columnconfigure(0, weight=1)
+
         text_widget.insert(tk.END, notes_content)
 
-        # Function to call when the window is to be closed
         def on_closing():
-            global notes_window, notes_content  # Declare as global within the function
-            notes_content = text_widget.get("1.0", tk.END)  # Update the stored notes content
+            global notes_window, notes_content
+            notes_content = text_widget.get("1.0", tk.END)
             notes_window.destroy()
-            notes_window = None  # Reset the global variable to None after destruction
+            notes_window = None
 
-        # Bind the Escape key to the on_closing function
         notes_window.bind("<Escape>", lambda event: on_closing())
-
         notes_window.protocol("WM_DELETE_WINDOW", on_closing)
         notes_window.focus_set()  # Set focus on the Notes window
+
+        # Delay the popup message about the notes
+        if notes_first_time:
+            notes_window.after(2000, lambda: messagebox.showinfo("Note", 
+                "Please note that any notes you make will disappear when closing the program."))
+            notes_first_time = False  # Set the flag to False so it won't show again
+
 
 def create_instructions_window():
     global instructions_window
