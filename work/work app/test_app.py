@@ -1,7 +1,9 @@
 import tkinter as tk
 from tkinter import messagebox
 import threading
-
+import subprocess
+import queue
+from tkinter import simpledialog, scrolledtext
 from charges_checker import check_file_conditions
 from email_dl import setup_outlook_session, download_attachments_and_save_as_msg
 from acc_checker import ExcelComparator
@@ -115,35 +117,56 @@ def create_instructions_window():
         instructions_window.protocol("WM_DELETE_WINDOW", on_closing)
 
         instructions_window.focus_set()  # Set focus on the Instructions window
-        
+
+def get_user_input():
+    result = simpledialog.askstring("Input Required", "Do you want to proceed? (Y/N)")
+    if result is not None and result.upper() in ['Y', 'N']:
+        return result.upper()
+    return None
+
+def run_script(user_input, q):
+    script_path = "path_to_your_script.py"  # Adjust the path as necessary
+    try:
+        process = subprocess.Popen(["python", script_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
+        # Send the user input to the script's stdin
+        stdout_data, stderr_data = process.communicate(input=user_input)
+        q.put(('output', stdout_data))  # Push output to the queue
+        if stderr_data:
+            q.put(('error', stderr_data))  # Push errors to the queue
+    except Exception as e:
+        q.put(('error', str(e)))
+    q.put(('done', None))  # Signal that the process is done
+
+def download_emails(q):
+    user_input = get_user_input()
+    if user_input:
+        threading.Thread(target=run_script, args=(user_input, q), daemon=True).start()
+
+def update_gui_from_queue(q, text_widget):
+    while not q.empty():
+        message_type, message = q.get()
+        if message_type == 'output' and message:
+            text_widget.insert(tk.END, message + "\n")
+        elif message_type == 'error' and message:
+            text_widget.insert(tk.END, "Error: " + message + "\n")
+        elif message_type == 'done':
+            text_widget.insert(tk.END, "Process Completed!\n")
+    text_widget.after(100, update_gui_from_queue, q, text_widget)  # schedule the function to check the queue again
+
+
 def create_ui():
     root = tk.Tk()
     root.title("Operations Dashboard")
     root.minsize(300, 250)
     root.geometry("300x250")
     root.resizable(True, True)
-
+    text_widget = scrolledtext.ScrolledText(root, height=10)
+    text_widget.pack(pady=10, padx=10)
+    
     # Checkbox for marking emails as read
     mark_as_read_var = tk.BooleanVar(value=False)
     mark_as_read_checkbox = tk.Checkbutton(root, text="Mark emails as read", variable=mark_as_read_var)
     mark_as_read_checkbox.pack(pady=10)
-
-    # Button for downloading emails
-    def download_emails():
-        email_address = "your_email@example.com"
-        shared_mailbox_email = "shared_mailbox@example.com"
-        category = "Universities"
-        target_senders = ['sender1@example.com', 'sender2@example.com']
-        save_confirmation = True
-
-        outlook = setup_outlook_session(email_address)
-        saved_emails, saved_attachments, error = download_attachments_and_save_as_msg(
-            outlook, shared_mailbox_email, category, target_senders, save_confirmation, mark_as_read_var.get())
-        
-        if error:
-            messagebox.showerror("Error", error)
-        else:
-            messagebox.showinfo("Success", f"{saved_emails} emails processed and {saved_attachments} attachments saved.")
 
     # Set a minimum size for the window to prevent making it too small.
     min_width, min_height = 300, 250
