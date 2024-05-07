@@ -16,10 +16,43 @@ notes_window = None
 instructions_window = None
 notes_content = ""
 
+def run_kejser(q):
+    script_path = "kejser.py"  # Specify the correct path to your script
+    try:
+        # Run the script and capture its output and errors
+        result = subprocess.run(["python", script_path], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.stdout:
+            print("Output from kejser.py:", result.stdout)
+            q.put(('done', 'Kejser.py completed successfully.\n'))
+        if result.stderr:
+            print("Errors from kejser.py:", result.stderr)
+            q.put(('error', f"Kejser.py encountered errors:\n{result.stderr}"))
+    except Exception as e:
+        print("Exception in running kejser.py:", e)
+        q.put(('error', f"Exception occurred: {str(e)}"))
+
+def notify_completion(q):
+    while not q.empty():
+        message_type, message = q.get()
+        if message_type == 'done':
+            messagebox.showinfo("Notification", message)
+        elif message_type == 'error':
+            messagebox.showerror("Error", message)
+
 def process_all_cases():
+    q = queue.Queue()
+    # Run kejser.py in a separate thread and wait for it to finish
+    kejser_thread = threading.Thread(target=run_kejser, args=(q,))
+    kejser_thread.start()
+    kejser_thread.join()  # Ensure kejser.py completes before starting other tasks
+
+    # Start other processing functions in separate threads
     threading.Thread(target=run_case_list).start()
     threading.Thread(target=check_conditions).start()
     threading.Thread(target=run_comparator).start()
+
+    # Start a thread to notify the user upon completion or errors
+    threading.Thread(target=notify_completion, args=(q,)).start()
 
 def run_case_list():
     excel_folder = "path_to_excel_folder"
