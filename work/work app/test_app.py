@@ -202,16 +202,16 @@ def create_ui():
     mark_as_read_checkbox.pack(pady=10)
 
     # Set a minimum size for the window to prevent making it too small.
-    min_width, min_height = 300, 250
+    min_width, min_height = 400, 450
     root.minsize(min_width, min_height)
     
     # Set a maximum size for the window to prevent making it too large.
-    max_width, max_height = 600, 500
+    max_width, max_height = 800, 700
     root.maxsize(max_width, max_height)
     
     # The geometry method sets the initial size of the window.
     # Adjusting it to start within the min and max size constraints.
-    initial_width, initial_height = 400, 350
+    initial_width, initial_height = 600, 470
     root.geometry(f"{initial_width}x{initial_height}")
     root.resizable(True, True)  # Allow resizing but within the restrictions set by minsize and maxsize
 

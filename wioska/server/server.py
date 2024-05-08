@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 
 API_URL = "http://localhost:11434/api/generate"
-MODEL_NAME = "dolphin-phi"
+MODEL_NAME = "dolphin-phi:latest"
 
 app = Flask(__name__)
 

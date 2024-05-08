@@ -8,20 +8,22 @@
 <body>
     <h1>Chat with Dolphin</h1>
     <form id="chat-form">
-        <!-- Adjust the style attribute as needed to change the size -->
+        <!-- Input for user messages -->
         <input type="text" id="message" name="message" placeholder="Enter your message" style="width: 100%; max-width: 600px; height: 50px; font-size: 20px; margin-bottom: 10px;">
         <button type="button" id="mic-button" style="font-size: 20px; vertical-align: top;">🎤</button>
         <button type="submit" style="font-size: 20px; vertical-align: top;">Send</button>
+        <!-- Checkbox for enabling/disabling text-to-speech -->
+        <label>
+            <input type="checkbox" id="speak-check" checked> Speak Response
+        </label>
     </form>
-    <div id="chat-history">
-        <!-- Loop through messages and display them -->
-        {% for msg in messages %}
-            <p class="{{msg.sender}}" style="font-size: 16px;">{{ msg.text }}</p>
-        {% endfor %}
+    <!-- Scrollable chat history -->
+    <div id="chat-history" style="height: 300px; overflow-y: scroll;">
+        <!-- Messages will be appended here -->
     </div>
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script>
-        // Speech to Text
+        // Speech to Text setup
         let recognition;
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -30,7 +32,6 @@
             recognition.lang = 'en-US';
             recognition.interimResults = false;
             recognition.maxAlternatives = 1;
-            recognition.duration = 20; // Not a standard property, for reference only
 
             recognition.onresult = function(event) {
                 const speechToText = event.results[0][0].transcript;
@@ -49,18 +50,19 @@
                 try {
                     recognition.start();
                 } catch (err) {
-                    alert("Microphone access was blocked. Please click the lock icon in your browser's address bar to allow access.");
+                    console.error("Error starting speech recognition: ", err);
                 }
             }
         });
 
-        // Existing send message functionality
+        // Send message functionality
         $("#chat-form").submit(function(event) {
             event.preventDefault();
     
             var message = $("#message").val();
             $("#message").val("");
-    
+            $("#chat-history").append("<p>User: " + message + "</p>"); // Display user message
+
             $.ajax({
                 url: "/chat",
                 method: "POST",
@@ -68,9 +70,10 @@
                 dataType: "json",
                 success: function(response) {
                     if (response.message) {
-                        $("#chat-history").append("<p>" + message + "</p>");
-                        $("#chat-history").append("<p>" + response.message + "</p>");
-                        speak(response.message); // Use the speak function here
+                        $("#chat-history").append("<p>Bot: " + response.message + "</p>"); // Display bot response
+                        if ($('#speak-check').is(':checked')) {
+                            speak(response.message); // Speak the response if checkbox is checked
+                        }
                     } else {
                         alert("Error: " + response.error);
                     }
@@ -81,6 +84,7 @@
             });
         });
 
+        // Text-to-Speech function
         function speak(text) {
             var msg = new SpeechSynthesisUtterance();
             msg.text = text;
