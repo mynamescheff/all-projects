@@ -17,9 +17,8 @@ instructions_window = None
 notes_content = ""
 
 def run_kejser(q):
-    script_path = "kejser.py"  # Specify the correct path to your script
+    script_path = "C:\\IT project2\\kejser.py"
     try:
-        # Run the script and capture its output and errors
         result = subprocess.run(["python", script_path], text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if result.stdout:
             print("Output from kejser.py:", result.stdout)
@@ -41,17 +40,14 @@ def notify_completion(q):
 
 def process_all_cases():
     q = queue.Queue()
-    # Run kejser.py in a separate thread and wait for it to finish
     kejser_thread = threading.Thread(target=run_kejser, args=(q,))
     kejser_thread.start()
-    kejser_thread.join()  # Ensure kejser.py completes before starting other tasks
+    kejser_thread.join()
 
-    # Start other processing functions in separate threads
     threading.Thread(target=run_case_list).start()
     threading.Thread(target=check_conditions).start()
     threading.Thread(target=run_comparator).start()
 
-    # Start a thread to notify the user upon completion or errors
     threading.Thread(target=notify_completion, args=(q,)).start()
 
 def run_case_list():
@@ -150,25 +146,23 @@ def create_instructions_window():
         instructions_window.protocol("WM_DELETE_WINDOW", on_closing)
 
         instructions_window.focus_set()  # Set focus on the Instructions window
-
+        
 def get_user_input():
-    result = simpledialog.askstring("Input Required", "Do you want to proceed? (Y/N)")
-    if result is not None and result.upper() in ['Y', 'N']:
-        return result.upper()
-    return None
+    # New function to display a yes/no dialog instead of text input
+    result = messagebox.askyesno("Input Required", "Do you want to proceed?")
+    return 'Y' if result else 'N'
 
 def run_script(user_input, q):
-    script_path = "path_to_your_script.py"  # Adjust the path as necessary
+    script_path = "C:\\IT project2\\email_dl.py"
     try:
         process = subprocess.Popen(["python", script_path], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=1)
-        # Send the user input to the script's stdin
         stdout_data, stderr_data = process.communicate(input=user_input)
-        q.put(('output', stdout_data))  # Push output to the queue
+        q.put(('output', stdout_data))
         if stderr_data:
-            q.put(('error', stderr_data))  # Push errors to the queue
+            q.put(('error', stderr_data))
     except Exception as e:
         q.put(('error', str(e)))
-    q.put(('done', None))  # Signal that the process is done
+    q.put(('done', None))
 
 def download_emails(q):
     user_input = get_user_input()
@@ -184,8 +178,7 @@ def update_gui_from_queue(q, text_widget):
             text_widget.insert(tk.END, "Error: " + message + "\n")
         elif message_type == 'done':
             text_widget.insert(tk.END, "Process Completed!\n")
-    text_widget.after(100, update_gui_from_queue, q, text_widget)  # schedule the function to check the queue again
-
+    text_widget.after(100, update_gui_from_queue, q, text_widget)
 
 def create_ui():
     root = tk.Tk()
