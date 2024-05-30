@@ -71,7 +71,7 @@ def find_and_box_card(screenshot, card_template):
     threshold = 0.8
     loc = np.where(res >= threshold)
 
-    # Draw a rectangle around the matched region
+    # Draw a rectangle around the matched regionq
     blue_boxes = []
     for pt in zip(*loc[::-1]):
         cv.rectangle(screenshot, pt, (pt[0] + w, pt[1] + h), (255, 0, 0), 2)
