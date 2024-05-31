@@ -71,7 +71,7 @@ def find_and_box_card(screenshot, card_template):
     threshold = 0.8
     loc = np.where(res >= threshold)
 
-    # Draw a rectangle around the matched regionq
+    # Draw a rectangle around the matched region
     blue_boxes = []
     for pt in zip(*loc[::-1]):
         cv.rectangle(screenshot, pt, (pt[0] + w, pt[1] + h), (255, 0, 0), 2)
@@ -97,8 +97,10 @@ def random_left_click_within_boxes(boxes_coords):
     x_start, y_start, x_end, y_end = box_coords
     x = random.randint(x_start, x_end)
     y = random.randint(y_start, y_end)
+    print(f"Clicking at coordinates ({x}, {y}) within box ({x_start}, {y_start}, {x_end}, {y_end})")
     human_like_mouse_move(x, y)
     pyautogui.click(button='left')
+    print("Clicked")
 
 red_box_coords = []  # List to store the coordinates of the red boxes
 green_boxes_coords = []  # List to store the coordinates of the green boxes
@@ -120,9 +122,12 @@ try:
         # Determine clicking behavior based on the number of detected boxes
         if green_boxes_coords:
             # If there are green boxes, continue clicking from red to green
-            red_box = random.choice(red_box_coords)
-            random_right_click_within_box(red_box)
-            random_left_click_within_boxes(green_boxes_coords)
+            if red_box_coords:
+                red_box = random.choice(red_box_coords)
+                random_right_click_within_box(red_box)
+                random_left_click_within_boxes(green_boxes_coords)
+            else:
+                print("No red boxes found.")
         elif blue_boxes_coords:
             # If no green boxes but blue boxes are found, ctrl+click all blue boxes
             for blue_box in blue_boxes_coords:
@@ -135,7 +140,7 @@ try:
                 pyautogui.keyUp('ctrl')  # Release the ctrl key
         else:
             # If no green or blue boxes are found, go back to searching
-            pass
+            print("No green or blue boxes found.")
         
         # Exit program if 'q' is pressed
         if cv.waitKey(1) & 0xFF == ord('q'):
@@ -145,3 +150,5 @@ try:
 
 finally:
     cv.destroyAllWindows()
+    capture.release()
+    print("Program ended.")
