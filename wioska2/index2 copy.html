@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with llama</title>
+</head>
+<body>
+    <h1>Chat with llama</h1>
+    <form id="initialize-form">
+        <input type="text" id="topic" name="topic" placeholder="Enter conversation topic" style="width: 100%; max-width: 600px; height: 30px; font-size: 16px; margin-bottom: 10px;">
+        <input type="text" id="npc1-background" name="npc1_background" placeholder="Enter NPC1 background" style="width: 100%; max-width: 600px; height: 30px; font-size: 16px; margin-bottom: 10px;">
+        <input type="text" id="npc2-background" name="npc2_background" placeholder="Enter NPC2 background" style="width: 100%; max-width: 600px; height: 30px; font-size: 16px; margin-bottom: 10px;">
+        <button type="button" id="initialize-button" style="font-size: 20px; vertical-align: top;">Initialize Conversation</button>
+    </form>
+    <form id="chat-form" style="margin-top: 20px;">
+        <!-- Input for user messages -->
+        <input type="text" id="message" name="message" placeholder="Enter your message" style="width: 100%; max-width: 600px; height: 50px; font-size: 20px; margin-bottom: 10px;">
+        <button type="button" id="mic-button" style="font-size: 20px; vertical-align: top;">🎤</button>
+        <button type="submit" style="font-size: 20px; vertical-align: top;">Send</button>
+    </form>
+    <!-- Scrollable chat history -->
+    <div id="chat-history" style="height: 300px; overflow-y: scroll;">
+        <!-- Messages will be appended here -->
+    </div>
+    <!-- Button to play TTS output -->
+    <button id="play-tts" style="font-size: 20px; margin-top: 10px;">Play Response</button>
+    <!-- Button to continue NPC conversation -->
+    <button id="continue-conversation" style="font-size: 20px; margin-top: 10px;">Continue Conversation</button>
+    <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+    <script>
+        // Speech to Text setup
+        let recognition;
+        if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+
+            recognition.onresult = function(event) {
+                const speechToText = event.results[0][0].transcript;
+                document.getElementById('message').value = speechToText;
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error', event.error);
+            };
+        } else {
+            alert("Your browser doesn't support speech recognition. Please use a compatible browser.");
+        }
+
+        document.getElementById('mic-button').addEventListener('click', function() {
+            if (recognition) {
+                try {
+                    recognition.start();
+                } catch (err) {
+                    console.error("Error starting speech recognition: ", err);
+                }
+            }
+        });
+
+        // Initialize conversation functionality
+        $("#initialize-button").click(function() {
+            var topic = $("#topic").val();
+            var npc1Background = $("#npc1-background").val();
+            var npc2Background = $("#npc2-background").val();
+
+            if (!topic || !npc1Background || !npc2Background) {
+                alert("Please enter topic and backgrounds for both NPCs.");
+                return;
+            }
+
+            $.ajax({
+                url: "/initialize",
+                method: "POST",
+                data: { topic: topic, npc1_background: npc1Background, npc2_background: npc2Background },
+                dataType: "json",
+                success: function(response) {
+                    if (response.status === "initialized") {
+                        $("#chat-history").append("<p>Conversation initialized with topic: " + topic + "</p>");
+                    } else {
+                        alert("Error: " + response.error);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("Error initializing conversation: " + errorThrown);
+                }
+            });
+        });
+
+        // Send message functionality
+        $("#chat-form").submit(function(event) {
+            event.preventDefault();
+    
+            var message = $("#message").val();
+            $("#message").val("");
+            $("#chat-history").append("<p>User: " + message + "</p>"); // Display user message
+
+            $.ajax({
+                url: "/chat",
+                method: "POST",
+                data: { message: message },
+                dataType: "json",
+                success: function(response) {
+                    if (response.message) {
+                        $("#chat-history").append("<p>NPC: " + response.message + "</p>"); // Display NPC response
+                    } else {
+                        alert("Error: " + response.error);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("Error sending message: " + errorThrown);
+                }
+            });
+        });
+
+        // Play TTS output functionality
+        $("#play-tts").click(function() {
+            var audio = new Audio('/play_tts?time=' + new Date().getTime());
+            audio.play();
+        });
+
+        // Continue conversation functionality
+        $("#continue-conversation").click(function() {
+            $.ajax({
+                url: "/chat",
+                method: "POST",
+                data: { message: '' },
+                dataType: "json",
+                success: function(response) {
+                    if (response.message) {
+                        $("#chat-history").append("<p>NPC: " + response.message + "</p>"); // Display NPC response
+                    } else {
+                        alert("Error: " + response.error);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("Error continuing conversation: " + errorThrown);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
