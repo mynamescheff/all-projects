@@ -1,7 +1,5 @@
 #write a function that will check if a name of the file is the same (or like 90% similar) to a string in C20 cell in each excel file in the folder
 
-
-
 import openpyxl
 import os
 import difflib
@@ -14,27 +12,33 @@ def similar(a, b):
 # Define the path to the folder containing the Excel files
 folder_path = r"your_folder_path"
 
-# Loop through all files in the folder
-for filename in os.listdir(folder_path):
-    # Check if the file is an Excel file
-    if filename.endswith(".xlsx"):
-        # Load the Excel file
-        wb = openpyxl.load_workbook(os.path.join(folder_path, filename))
-        # Loop through all worksheets in the file
-        for sheet in wb.worksheets:
-            # Get the C20 cell value
-            c20_cell = sheet["C20"].value
-            if c20_cell is not None:
-                # Loop through all other worksheets in the file
-                for other_sheet in wb.worksheets:
-                    if other_sheet != sheet:
-                        # Get the name cell value
-                        name_cell = other_sheet["B1"].value
-                        if name_cell is not None:
-                            # Check if the name cell value is similar to the C20 cell value
-                            if similar(name_cell, c20_cell) > 0.9:
-                                print(f"File: {filename}, Sheet: {sheet.title}, Name: {name_cell}, C20: {c20_cell}")
-                                break
+# Create a list of all Excel files in the folder
+excel_files = [f for f in os.listdir(folder_path) if f.endswith('.xlsx')]
+
+# Create a DataFrame to store the results
+df = pd.DataFrame(columns=['File', 'Sheet', 'Name', 'C20'])
+
+# Loop through all Excel files in the folder
+for excel_file in excel_files:
+    # Load the Excel file
+    wb = openpyxl.load_workbook(os.path.join(folder_path, excel_file))
+    # Loop through all worksheets in the file
+    for sheet in wb.worksheets:
+        # Get the C20 cell value
+        c20_cell = sheet["C20"].value
+        if c20_cell is not None:
+            # Loop through all other worksheets in the file
+            for other_sheet in wb.worksheets:
+                if other_sheet != sheet:
+                    # Get the name cell value
+                    name_cell = other_sheet["B1"].value
+                    if name_cell is not None:
+                        # Check if the name cell value is similar to the C20 cell value
+                        if similar(name_cell, c20_cell) > 0.9:
+                            # Append the results to the DataFrame
+                            df = df.append({'File': excel_file, 'Sheet': sheet.title, 'Name': name_cell, 'C20': c20_cell}, ignore_index=True)
+
+
 
 # The function similar() calculates the similarity ratio between two strings using the difflib library.
 # If the ratio is greater than 0.9, the function returns True. Otherwise, it returns False.
