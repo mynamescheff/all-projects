@@ -6,13 +6,14 @@ import time
 
 API_URL = "http://localhost:11434/api/generate"
 MODEL_NAME = "llama3:instruct"
-INSTRUCTION_NPC1 = "NPC1: Please respond naturally to the following input: "
-INSTRUCTION_NPC2 = "NPC2: Please respond naturally to the following input: "
 
 app = Flask(__name__)
 
 # Initialize a list to store messages
 messages = []
+topic = ""
+npc1_background = ""
+npc2_background = ""
 
 # Initialize TTS with the pre-trained model and set the device to CUDA
 try:
@@ -23,18 +24,35 @@ except Exception as e:
 
 @app.route("/")
 def index():
-    return render_template("index.html", messages=messages)
+    return render_template("index2.html", messages=messages)
+
+@app.route("/initialize", methods=["POST"])
+def initialize():
+    global topic, npc1_background, npc2_background
+    topic = request.form["topic"]
+    npc1_background = request.form["npc1_background"]
+    npc2_background = request.form["npc2_background"]
+    messages.clear()
+    return jsonify({"status": "initialized"})
 
 @app.route("/chat", methods=["POST"])
 def chat():
+    global topic, npc1_background, npc2_background
+
+    if not topic or not npc1_background or not npc2_background:
+        return jsonify({"error": "Conversation not initialized with topic and backgrounds"})
+
     user_message = request.form["message"]
     messages.append({"text": user_message, "sender": "user"})
 
-    npc1_message = generate_response(INSTRUCTION_NPC1, user_message)
+    instruction_npc1 = f"NPC1: {npc1_background} The topic is {topic}. Please do not respond with any numbers or special characters. Please create a prompt that would take around 20 seconds of speech to read. Please respond naturally to the following input: "
+    instruction_npc2 = f"NPC2: {npc2_background} The topic is {topic}. Please do not respond with any numbers or special characters. Please create a prompt that would take around 20 seconds of speech to read. Please respond naturally to the following input: "
+
+    npc1_message = generate_response(instruction_npc1, user_message)
     if npc1_message:
         messages.append({"text": npc1_message, "sender": "NPC1"})
 
-        npc2_message = generate_response(INSTRUCTION_NPC2, npc1_message)
+        npc2_message = generate_response(instruction_npc2, npc1_message)
         if npc2_message:
             messages.append({"text": npc2_message, "sender": "NPC2"})
 

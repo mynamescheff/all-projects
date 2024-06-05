@@ -3,3 +3,4 @@
 *.zip
 work/work app/txt.txt
 tts/coqui/TTS/
+output.wav
