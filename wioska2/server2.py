@@ -3,9 +3,11 @@ import requests
 from TTS.api import TTS
 import os
 import time
+import wave
 
 API_URL = "http://localhost:11434/api/generate"
 MODEL_NAME = "llama3:instruct"
+OUTPUT_FILE = "output.wav"
 
 app = Flask(__name__)
 
@@ -24,7 +26,7 @@ except Exception as e:
 
 @app.route("/")
 def index():
-    return render_template("index2.html", messages=messages)
+    return render_template("index.html", messages=messages)
 
 @app.route("/initialize", methods=["POST"])
 def initialize():
@@ -57,13 +59,19 @@ def chat():
             messages.append({"text": npc2_message, "sender": "NPC2"})
 
             # Generate TTS output for NPC2's message
-            output_file = "output.wav"
             try:
-                tts.tts_to_file(text=npc2_message, file_path=output_file)
+                tts.tts_to_file(text=npc2_message, file_path=OUTPUT_FILE)
                 print("TTS output generated successfully.")
             except Exception as e:
                 print("Error generating TTS output:", e)
                 return jsonify({"error": "TTS generation failed"})
+
+            # Check the length of the generated .wav file
+            with wave.open(OUTPUT_FILE, 'r') as wav_file:
+                frames = wav_file.getnframes()
+                rate = wav_file.getframerate()
+                duration = frames / float(rate)
+                time.sleep(duration + 2)  # Wait for the duration of the .wav file plus 2 seconds
 
             return jsonify({"message": npc2_message})
     
@@ -82,16 +90,28 @@ def generate_response(instruction, input_message):
 
     if response.status_code == 200:
         response_data = response.json()
-        return response_data.get("response")
+        generated_text = response_data.get("response")
+        # Add the response to the list
+        messages.append({"text": generated_text, "sender": "bot"})
+        
+        # Generate TTS output
+        try:
+            tts.tts_to_file(text=generated_text, file_path=OUTPUT_FILE)
+            print("TTS output generated successfully.")
+        except Exception as e:
+            print("Error generating TTS output:", e)
+            return None
+
+        return generated_text
     else:
-        print(f"Error: Received status code {response.status_code}")
+        error_message = f"Error: Received status code {response.status_code}"
+        print(error_message)
         return None
 
 @app.route("/play_tts")
 def play_tts():
-    output_file = "output.wav"
-    if os.path.exists(output_file):
-        return send_file(output_file, as_attachment=False)
+    if os.path.exists(OUTPUT_FILE):
+        return send_file(OUTPUT_FILE, as_attachment=False)
     else:
         return jsonify({"error": "TTS output file not found"})
 
