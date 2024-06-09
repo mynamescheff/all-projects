@@ -21,3 +21,10 @@ with open(os.path.join(path, 'data.csv'), 'r') as file:
     data = file.read()
     with open(os.path.join(path, 'data.txt'), 'w') as txt:
         txt.write(data)
+
+#make each line from the csv file a new line in the txt file
+with open(os.path.join(path, 'data.txt'), 'r') as file:
+    data = file.read()
+    data = data.replace(',', '\n')
+    with open(os.path.join(path, 'data.txt'), 'w') as txt:
+        txt.write(data)
