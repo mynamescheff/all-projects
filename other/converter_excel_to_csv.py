@@ -28,3 +28,10 @@ with open(os.path.join(path, 'data.txt'), 'r') as file:
     data = data.replace(',', '\n')
     with open(os.path.join(path, 'data.txt'), 'w') as txt:
         txt.write(data)
+
+#convert the txt file so that each new line begins with "10:", "20:", "30:", etc
+with open(os.path.join(path, 'data.txt'), 'r') as file:
+    data = file.readlines()
+    with open(os.path.join(path, 'data.txt'), 'w') as txt:
+        for i, line in enumerate(data):
+            txt.write(f'{(i+1)*10}:{line}')
