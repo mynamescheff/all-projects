@@ -4,32 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat with llama</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: space-around;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+        .container {
+            width: 48%;
+            height: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            border-right: 1px solid #ccc;
+        }
+        .input-container {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+        .input-container input[type="text"], .input-container textarea, .input-container select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            resize: vertical;
+            overflow: auto;
+        }
+        .input-container button {
+            font-size: 16px;
+            padding: 10px;
+        }
+        #chat-history, #npc-chat-history {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        .response-label {
+            font-weight: bold;
+        }
+        .audio-label {
+            margin-left: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+        .mic-button {
+            font-size: 16px;
+            padding: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-    <h1>Chat with llama</h1>
-    <form id="initialize-form">
-        <input type="text" id="topic" name="topic" placeholder="Enter conversation topic" style="width: 100%; max-width: 600px; height: 30px; font-size: 16px; margin-bottom: 10px;">
-        <input type="text" id="npc1-background" name="npc1_background" placeholder="Enter NPC1 background" style="width: 100%; max-width: 600px; height: 30px; font-size: 16px; margin-bottom: 10px;">
-        <input type="text" id="npc2-background" name="npc2_background" placeholder="Enter NPC2 background" style="width: 100%; max-width: 600px; height: 30px; font-size: 16px; margin-bottom: 10px;">
-        <button type="button" id="initialize-button" style="font-size: 20px; vertical-align: top;">Initialize Conversation</button>
-    </form>
-    <form id="chat-form" style="margin-top: 20px;">
-        <!-- Input for user messages -->
-        <input type="text" id="message" name="message" placeholder="Enter your message" style="width: 100%; max-width: 600px; height: 50px; font-size: 20px; margin-bottom: 10px;">
-        <button type="button" id="mic-button" style="font-size: 20px; vertical-align: top;">🎤</button>
-        <button type="submit" style="font-size: 20px; vertical-align: top;">Send</button>
-    </form>
-    <!-- Scrollable chat history -->
-    <div id="chat-history" style="height: 300px; overflow-y: scroll;">
-        <!-- Messages will be appended here -->
+    <div class="container">
+        <h1>NPC Conversation</h1>
+        <form id="npc-count-form" class="input-container">
+            <label for="npc-count">Select number of NPCs:</label>
+            <select id="npc-count" name="npc_count">
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+            </select>
+            <button type="button" id="confirm-npc-count-button">Confirm</button>
+        </form>
+        <form id="initialize-form" class="input-container" style="display: none;">
+            <input type="text" id="topic" name="topic" placeholder="Enter conversation topic">
+            <div id="npc-backgrounds">
+                <!-- NPC backgrounds will be appended here -->
+            </div>
+            <button type="button" id="initialize-button">Initialize Conversation</button>
+        </form>
+        <div id="npc-chat-history">
+            <!-- NPC messages will be appended here -->
+        </div>
+        <button id="play-tts">Play Response</button>
+        <button id="continue-conversation">Continue Conversation</button>
     </div>
-    <!-- Button to play TTS output -->
-    <button id="play-tts" style="font-size: 20px; margin-top: 10px;">Play Response</button>
-    <!-- Button to continue NPC conversation -->
-    <button id="continue-conversation" style="font-size: 20px; margin-top: 10px;">Continue Conversation</button>
+
+    <div class="container">
+        <h1>User Conversation</h1>
+        <form id="chat-form" class="input-container">
+            <div style="position: relative;">
+                <textarea id="message" name="message" placeholder="Enter your message"></textarea>
+                <button type="button" id="mic-button" class="mic-button" style="position: absolute; right: 10px; top: 10px;">🎤</button>
+            </div>
+            <button type="submit">Send</button>
+        </form>
+        <div id="chat-history">
+            <!-- User messages will be appended here -->
+        </div>
+    </div>
+
+    <!-- Audio player -->
+    <audio id="audio-player" controls style="display: none;">
+        <source id="audio-source" src="" type="audio/wav">
+        Your browser does not support the audio element.
+    </audio>
+
     <script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
     <script>
-        // Speech to Text setup
         let recognition;
         if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -43,7 +126,7 @@
                 const speechToText = event.results[0][0].transcript;
                 document.getElementById('message').value = speechToText;
             };
-            
+
             recognition.onerror = function(event) {
                 console.error('Speech recognition error', event.error);
             };
@@ -61,25 +144,36 @@
             }
         });
 
-        // Initialize conversation functionality
+        $("#confirm-npc-count-button").click(function() {
+            let npcCount = $("#npc-count").val();
+            if (confirm("Are you sure you want to proceed with " + npcCount + " NPCs?")) {
+                $("#npc-count-form").hide();
+                $("#initialize-form").show();
+                $("#npc-backgrounds").empty();
+                for (let i = 1; i <= npcCount; i++) {
+                    $("#npc-backgrounds").append(`<input type="text" name="npc_background_${i}" placeholder="Enter NPC${i} background">`);
+                }
+            }
+        });
+
         $("#initialize-button").click(function() {
             var topic = $("#topic").val();
-            var npc1Background = $("#npc1-background").val();
-            var npc2Background = $("#npc2-background").val();
-
-            if (!topic || !npc1Background || !npc2Background) {
-                alert("Please enter topic and backgrounds for both NPCs.");
-                return;
+            var npcCount = $("#npc-count").val();
+            var npcBackgrounds = [];
+            for (let i = 1; i <= npcCount; i++) {
+                npcBackgrounds.push($(`input[name="npc_background_${i}"]`).val());
             }
 
             $.ajax({
                 url: "/initialize",
                 method: "POST",
-                data: { topic: topic, npc1_background: npc1Background, npc2_background: npc2Background },
+                data: { topic: topic, npc_count: npcCount, npc_backgrounds: npcBackgrounds },
                 dataType: "json",
                 success: function(response) {
                     if (response.status === "initialized") {
-                        $("#chat-history").append("<p>Conversation initialized with topic: " + topic + "</p>");
+                        $("#npc-chat-history").append("<p>Conversation initialized with topic: " + topic + "</p>");
+                        $("#npc-chat-history").append("<p class='response-label'>NPC1: " + response.message + "</p>");
+                        playAudio("NPC1 first response");
                     } else {
                         alert("Error: " + response.error);
                     }
@@ -90,22 +184,21 @@
             });
         });
 
-        // Send message functionality
         $("#chat-form").submit(function(event) {
             event.preventDefault();
-    
+
             var message = $("#message").val();
             $("#message").val("");
             $("#chat-history").append("<p>User: " + message + "</p>"); // Display user message
 
             $.ajax({
-                url: "/chat",
+                url: "/user_chat",
                 method: "POST",
                 data: { message: message },
                 dataType: "json",
                 success: function(response) {
                     if (response.message) {
-                        $("#chat-history").append("<p>NPC: " + response.message + "</p>"); // Display NPC response
+                        $("#chat-history").append("<p class='response-label'>Model: " + response.message + "</p>");
                     } else {
                         alert("Error: " + response.error);
                     }
@@ -116,28 +209,58 @@
             });
         });
 
-        // Play TTS output functionality
-        $("#play-tts").click(function() {
-            var audio = new Audio('/play_tts?time=' + new Date().getTime());
-            audio.play();
-        });
+        function playAudio(label) {
+            $.ajax({
+                url: "/play_tts",
+                method: "GET",
+                success: function(response) {
+                    var audioPlayer = document.getElementById('audio-player');
+                    var audioSource = document.getElementById('audio-source');
+                    audioSource.src = '/play_tts?time=' + new Date().getTime();
+                    audioPlayer.load();
+                    audioPlayer.play();
+                    audioPlayer.style.display = 'block';
+                    $("#npc-chat-history").append("<span class='audio-label'>" + label + "</span>");
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("Error playing TTS: " + errorThrown);
+                }
+            });
+        }
 
-        // Continue conversation functionality
         $("#continue-conversation").click(function() {
             $.ajax({
-                url: "/chat",
+                url: "/npc_chat",
                 method: "POST",
                 data: { message: '' },
                 dataType: "json",
                 success: function(response) {
                     if (response.message) {
-                        $("#chat-history").append("<p>NPC: " + response.message + "</p>"); // Display NPC response
+                        $("#npc-chat-history").append("<p class='response-label'>" + response.sender + ": " + response.message + "</p>");
+                        playAudio(response.sender + " response");
                     } else {
                         alert("Error: " + response.error);
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     alert("Error continuing conversation: " + errorThrown);
+                }
+            });
+        });
+
+        $("#cleanup-button").click(function() {
+            $.ajax({
+                url: "/cleanup",
+                method: "GET",
+                success: function(response) {
+                    if (response.status === "cleaned up") {
+                        alert("Cleaned up generated TTS files.");
+                    } else {
+                        alert("Error: " + response.error);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    alert("Error cleaning up: " + errorThrown);
                 }
             });
         });
