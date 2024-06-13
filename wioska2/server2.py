@@ -16,8 +16,8 @@ app = Flask(__name__)
 messages = []
 topic = ""
 npc_backgrounds = []
-current_speaker = "NPC1"
-response_count = {"NPC1": 0, "NPC2": 0}
+current_speaker_index = 0
+response_count = {}
 user_background = "You are a helpful AI model."
 
 # Initialize TTS with the pre-trained model and set the device to CUDA
@@ -33,12 +33,12 @@ def index():
 
 @app.route("/initialize", methods=["POST"])
 def initialize():
-    global topic, npc_backgrounds, current_speaker, response_count
+    global topic, npc_backgrounds, current_speaker_index, response_count
     topic = request.form["topic"]
     npc_count = int(request.form["npc_count"])
     npc_backgrounds = request.form.getlist("npc_backgrounds[]")
     messages.clear()
-    current_speaker = "NPC1"
+    current_speaker_index = 0
     response_count = {f"NPC{i+1}": 0 for i in range(npc_count)}
 
     # Generate random backgrounds if not provided
@@ -59,7 +59,7 @@ def initialize():
 
 @app.route("/npc_chat", methods=["POST"])
 def npc_chat():
-    global topic, npc_backgrounds, current_speaker
+    global topic, npc_backgrounds, current_speaker_index
 
     if not topic or not npc_backgrounds:
         return jsonify({"error": "Conversation not initialized with topic and backgrounds"})
@@ -67,20 +67,18 @@ def npc_chat():
     user_message = request.form["message"]
     messages.append({"text": user_message, "sender": "user"})
 
-    current_npc_index = int(current_speaker[3:]) - 1
+    current_speaker = f"NPC{current_speaker_index + 1}"
 
-    next_npc_index = (current_npc_index + 1) % len(npc_backgrounds)
+    current_instruction = f"{current_speaker}: {npc_backgrounds[current_speaker_index]} The topic is {topic}. Please do not respond with any numbers or special characters. Please create a prompt that would take around 20 seconds of speech to read. Please respond naturally to the following input: "
+    next_npc_index = (current_speaker_index + 1) % len(npc_backgrounds)
     next_npc = f"NPC{next_npc_index + 1}"
-
-    current_instruction = f"{current_speaker}: {npc_backgrounds[current_npc_index]} The topic is {topic}. Please do not respond with any numbers or special characters. Please create a prompt that would take around 20 seconds of speech to read. Please respond naturally to the following input: "
-    next_instruction = f"{next_npc}: {npc_backgrounds[next_npc_index]} The topic is {topic}. Please do not respond with any numbers or special characters. Please create a prompt that would take around 20 seconds of speech to read. Please respond naturally to the following input: "
 
     current_npc_message = generate_response(current_instruction, user_message)
     if current_npc_message:
         messages.append({"text": current_npc_message, "sender": current_speaker})
         generate_tts(current_npc_message)
         response_count[current_speaker] += 1
-        current_speaker = next_npc
+        current_speaker_index = next_npc_index
         return jsonify({"message": current_npc_message, "sender": f"{current_speaker} (response {response_count[current_speaker]})"})
 
     return jsonify({"error": "Failed to generate conversation"})
