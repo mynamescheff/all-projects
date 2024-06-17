@@ -1,6 +1,10 @@
 import pandas as pd
+import os
 
 def filter_and_save_excel(input_file):
+    # Get the directory where the script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    
     # Load the Excel file
     df = pd.read_excel(input_file, header=None)
 
@@ -18,8 +22,11 @@ def filter_and_save_excel(input_file):
             # Combine header rows with the filtered row
             combined_df = pd.concat([header_rows, filtered_row], ignore_index=True)
 
+            # Define the full path for the new file
+            new_file_path = os.path.join(script_dir, new_filename)
+
             # Save to a new Excel file
-            with pd.ExcelWriter(new_filename, engine='openpyxl') as writer:
+            with pd.ExcelWriter(new_file_path, engine='openpyxl') as writer:
                 combined_df.to_excel(writer, index=False, header=False)
 
 # Usage
