@@ -7,6 +7,7 @@ from character_map import CharacterTransformer  # Assuming CharacterTransformer 
 
 SHARED_MAILBOX_EMAIL = 'your_shared_mailbox@example.com'
 
+
 class OutlookProcessor:
     def __init__(self, category, target_senders, attachment_save_path, msg_save_path):
         self.category = category
