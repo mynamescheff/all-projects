@@ -41,3 +41,30 @@ class PasswordGenerator:
         # Save the generated password to a file
         save_password_to_file(password)
         print("Password saved to file.")
+
+class PasswordGeneratorv2:
+    def generate_random_password(length=12, include_uppercase=True, include_digits=True, include_special_chars=True):
+        """
+        Generate a random password.
+
+        Parameters:
+        - length (int): Length of the password. Default is 12.
+        - include_uppercase (bool): Whether to include uppercase letters. Default is True.
+        - include_digits (bool): Whether to include digits. Default is True.
+        - include_special_chars (bool): Whether to include special characters. Default is True.
+
+        Returns:
+        - str: Generated password.
+        """
+        lower = string.ascii_lowercase
+        upper = string.ascii_uppercase if include_uppercase else ''
+        digits = string.digits if include_digits else ''
+        special = string.punctuation if include_special_chars else ''
+
+        all_chars = lower + upper + digits + special
+
+        if not all_chars:
+            raise ValueError("At least one character set must be enabled")
+
+        password = ''.join(random.choice(all_chars) for _ in range(length))
+        return password
