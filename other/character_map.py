@@ -102,6 +102,22 @@ character_mapping = {
     'ø': 'o',
     'Å': 'A',
     'å': 'a',
+    'Æ': 'AE',
+    'æ': 'ae',
+    'Œ': 'OE',
+    'œ': 'oe',
+    'Þ': 'Th',
+    'þ': 'th',
+    'Ð': 'D',
+    'ð': 'd',
+    'Ĳ': 'IJ',
+    'ĳ': 'ij',
+    'ĳ': 'ij',
+    'Ĳ': 'IJ',
+    'Ŋ': 'NG',
+    'ŋ': 'ng',
+
+
 }
 
 class CharacterTransformer():
