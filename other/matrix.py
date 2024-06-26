@@ -29,3 +29,16 @@ print("Inverse of A to the power of 1:\n", inv_A_1)
 print("Inverse of A to the power of 2:\n", inv_A_2)
 inv_A_4 = np.matmul(inv_A_2, inv_A_2)
 print("Inverse of A to the power of 4:\n", inv_A_4)
+
+B=np.array([[1, 1, 1, 1],
+            [1, 1, 1, 2],
+            [1, 1, 2, 2],
+            [1, 2, 2, 2]])
+
+# Calculating the determinant of matrix B
+det_B = np.linalg.det(B)
+#calculating the inverse of matrix B
+inv_B = np.linalg.inv(B)
+
+print("Determinant of B:", det_B)
+print("Inverse of B:\n", inv_B)
