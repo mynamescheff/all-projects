@@ -42,3 +42,11 @@ inv_B = np.linalg.inv(B)
 
 print("Determinant of B:", det_B)
 print("Inverse of B:\n", inv_B)
+
+#calculate inv_B^1*inv_B^2*inv_B^2
+inv_B_1 = np.linalg.matrix_power(inv_B, 1)
+inv_B_2 = np.linalg.matrix_power(inv_B, 2)
+print("Inverse of B to the power of 1:\n", inv_B_1)
+print("Inverse of B to the power of 2:\n", inv_B_2)
+inv_B_4 = np.matmul(inv_B_2, inv_B_2)
+print("Inverse of B to the power of 4:\n", inv_B_4)
