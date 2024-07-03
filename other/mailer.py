@@ -10,6 +10,7 @@ SHARED_MAILBOX_EMAIL = 'your_shared_mailbox@example.com'
 
 class OutlookProcessor:
     def __init__(self, category, target_senders, attachment_save_path, msg_save_path):
+        self.processed_emails = {}
         self.category = category
         self.target_senders = target_senders
         self.attachment_save_path = attachment_save_path
@@ -47,6 +48,7 @@ class OutlookProcessor:
     def download_attachments_and_save_as_msg(self, save_emails, mark_as_read):
         recipient = self.namespace.CreateRecipient(SHARED_MAILBOX_EMAIL)
         recipient.Resolve()
+        self.processed_emails = {}  # Clear previous tracking
         if recipient.Resolved:
             shared_mailbox = self.namespace.GetSharedDefaultFolder(recipient, 6)
             unread_emails = shared_mailbox.Items.Restrict(f"[Categories] = '{self.category}' AND [UnRead] = True")
@@ -66,6 +68,7 @@ class OutlookProcessor:
                         print(f"Processing email from: {sender_name}")
                         if sender_name.lower() in [sender.lower() for sender in self.target_senders]:
                             subject_correct = True
+                            saved_attachment_paths = []
                             if item.Attachments.Count > 0:
                                 for attachment in item.Attachments:
                                     if attachment.FileName.lower().endswith('.xlsx'):
@@ -83,6 +86,7 @@ class OutlookProcessor:
                                         attachment_path = os.path.join(self.attachment_save_path, f"{unique_attachment_filename}.xlsx")
                                         attachment.SaveAsFile(attachment_path)
                                         print(f"Saved attachment: {attachment_path}")
+                                        saved_attachment_paths.append(attachment_path)  # Track saved attachments
                                         saved_attachments += 1
                                         unique_msg_filename = self.get_unique_filename(self.msg_save_path, new_filename, ' approval.msg')
                                         approval_msg_path = os.path.join(self.msg_save_path, f"{unique_msg_filename} approval.msg")
@@ -91,6 +95,7 @@ class OutlookProcessor:
                                 if subject_correct:
                                     self.mark_email_as_read(item, mark_as_read)
                                     saved_emails += 1
+                                    self.processed_emails[item.Subject] = saved_attachment_paths  # Track processed email
                     except Exception as e:
                         print(f"Error processing email from {sender_email}: {str(e)}")
                         not_saved_subjects.append(item.Subject)
@@ -106,6 +111,13 @@ class OutlookProcessor:
                         print(subject)
                 # Additional block to copy attachments to the utils/pmt_run directory
                 self.copy_attachments_to_pmt_run()
+
+                if self.processed_emails:
+                    print("Summary of processed emails and saved attachments:")
+                    for subject, attachments in self.processed_emails.items():
+                        print(f"Email subject: {subject}")
+                        for attachment in attachments:
+                            print(f" - Saved attachment: {attachment}")
                 # Verify the count of saved attachments
                 actual_saved_attachments = self.count_files_in_directory(self.attachment_save_path)
                 if saved_attachments != actual_saved_attachments:
@@ -119,7 +131,7 @@ class OutlookProcessor:
         # Get the absolute path of the script
         script_path = os.path.dirname(os.path.abspath(__file__))
         # Define the pmt_run directory relative to the script location
-        pmt_run_dir = os.path.join(script_path, "..", "utils", "pmt_run")
+        pmt_run_dir = os.path.join(script_path, "utils", "pmt_run")
         os.makedirs(pmt_run_dir, exist_ok=True)
         for filename in os.listdir(self.attachment_save_path):
             source_file = os.path.join(self.attachment_save_path, filename)
@@ -136,3 +148,4 @@ class OutlookProcessor:
 
     def count_files_in_directory(self, directory):
         return len([name for name in os.listdir(directory) if os.path.isfile(os.path.join(directory, name))])
+
