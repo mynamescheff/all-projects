@@ -50,3 +50,26 @@ print("Inverse of B to the power of 1:\n", inv_B_1)
 print("Inverse of B to the power of 2:\n", inv_B_2)
 inv_B_4 = np.matmul(inv_B_2, inv_B_2)
 print("Inverse of B to the power of 4:\n", inv_B_4)
+
+C=np.array([[1, 1, 1, 1],
+            [1, 2, 1, 1],
+            [2, 2, 2, 1],
+            [3, 1, 2, 2]])
+
+#calculate c^2
+C_2 = np.linalg.matrix_power(C, 2)
+print("C^2:\n", C_2)
+
+#calculate determinant of C
+det_C = np.linalg.det(C)
+print("Determinant of C:", det_C)
+
+D=np.array([[1, 1, 1, 1],
+            [1, 1, 1, 2],
+            [1, 1, 2, 2],
+            [1, 2, 2, 2]])
+
+#calculate det D
+
+det_D = np.linalg.det(D)
+print("Determinant of D:", det_D)
