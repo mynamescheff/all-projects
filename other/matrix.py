@@ -73,3 +73,13 @@ D=np.array([[1, 1, 1, 1],
 
 det_D = np.linalg.det(D)
 print("Determinant of D:", det_D)
+
+E=np.array([[1, 1, 1, 1],
+            [2, 2, 2, 1],
+            [2, 2, 1, 1],
+            [3, 1, 2, 2]])
+
+#calculate det E
+
+det_E = np.linalg.det(E)
+print("Determinant of E:", det_E)
