@@ -11,6 +11,8 @@ SHARED_MAILBOX_EMAIL = 'your_shared_mailbox@example.com'
 class OutlookProcessor:
     def __init__(self, category, target_senders, attachment_save_path, msg_save_path):
         self.processed_emails = {}
+        self.emails_with_pdf = []
+        self.emails_with_nvf_new_vendor = []
         self.category = category
         self.target_senders = target_senders
         self.attachment_save_path = attachment_save_path
@@ -49,6 +51,8 @@ class OutlookProcessor:
         recipient = self.namespace.CreateRecipient(SHARED_MAILBOX_EMAIL)
         recipient.Resolve()
         self.processed_emails = {}  # Clear previous tracking
+        self.emails_with_pdf = []  # Clear previous tracking
+        self.emails_with_nvf_new_vendor = []  # Clear previous tracking
         if recipient.Resolved:
             shared_mailbox = self.namespace.GetSharedDefaultFolder(recipient, 6)
             unread_emails = shared_mailbox.Items.Restrict(f"[Categories] = '{self.category}' AND [UnRead] = True")
@@ -69,8 +73,14 @@ class OutlookProcessor:
                         if sender_name.lower() in [sender.lower() for sender in self.target_senders]:
                             subject_correct = True
                             saved_attachment_paths = []
+                            has_pdf = False
+                            has_nvf_new_vendor = False
                             if item.Attachments.Count > 0:
                                 for attachment in item.Attachments:
+                                    if attachment.FileName.lower().endswith('.pdf'):
+                                        has_pdf = True
+                                    if 'nvf' in attachment.FileName.lower() or 'new vendor' in attachment.FileName.lower():
+                                        has_nvf_new_vendor = True
                                     if attachment.FileName.lower().endswith('.xlsx'):
                                         new_filename = self.extract_filename_from_subject(item.Subject)
                                         transformer = CharacterTransformer()
@@ -92,6 +102,10 @@ class OutlookProcessor:
                                         approval_msg_path = os.path.join(self.msg_save_path, f"{unique_msg_filename} approval.msg")
                                         item.SaveAs(approval_msg_path)
                                         print(f"Saved Outlook message: {approval_msg_path}")
+                                if has_pdf:
+                                    self.emails_with_pdf.append(item.Subject)
+                                if has_nvf_new_vendor:
+                                    self.emails_with_nvf_new_vendor.append(item.Subject)
                                 if subject_correct:
                                     self.mark_email_as_read(item, mark_as_read)
                                     saved_emails += 1
@@ -122,10 +136,22 @@ class OutlookProcessor:
                 actual_saved_attachments = self.count_files_in_directory(self.attachment_save_path)
                 if saved_attachments != actual_saved_attachments:
                     print(f"Discrepancy detected: expected {saved_attachments} attachments, but found {actual_saved_attachments} in directory.")
+                
+                # Print detected emails with .pdf and NVF/New Vendor files
+                if self.emails_with_pdf:
+                    print("Emails with PDF attachments:")
+                    for subject in self.emails_with_pdf:
+                        print(subject)
+                if self.emails_with_nvf_new_vendor:
+                    print("Emails with NVF or New Vendor in attachment filenames:")
+                    for subject in self.emails_with_nvf_new_vendor:
+                        print(subject)
+
             else:
                 print("Email saving is disabled. No emails were saved.")
         else:
             print(f"Could not resolve the recipient: {SHARED_MAILBOX_EMAIL}")
+
 
     def copy_attachments_to_pmt_run(self):
         # Get the absolute path of the script
@@ -148,4 +174,3 @@ class OutlookProcessor:
 
     def count_files_in_directory(self, directory):
         return len([name for name in os.listdir(directory) if os.path.isfile(os.path.join(directory, name))])
-
