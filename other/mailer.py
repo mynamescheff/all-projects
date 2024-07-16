@@ -4,6 +4,7 @@ import time
 import re
 import win32com.client
 from character_map import CharacterTransformer  # Assuming CharacterTransformer is defined in character_map.py
+import datetime
 
 SHARED_MAILBOX_EMAIL = 'your_shared_mailbox@example.com'
 
@@ -75,6 +76,7 @@ class OutlookProcessor:
                             saved_attachment_paths = []
                             has_pdf = False
                             has_nvf_new_vendor = False
+                            save_msg_once = False
                             if item.Attachments.Count > 0:
                                 for attachment in item.Attachments:
                                     if attachment.FileName.lower().endswith('.pdf'):
@@ -98,18 +100,22 @@ class OutlookProcessor:
                                         print(f"Saved attachment: {attachment_path}")
                                         saved_attachment_paths.append(attachment_path)  # Track saved attachments
                                         saved_attachments += 1
-                                        unique_msg_filename = self.get_unique_filename(self.msg_save_path, new_filename, ' approval.msg')
-                                        approval_msg_path = os.path.join(self.msg_save_path, f"{unique_msg_filename} approval.msg")
-                                        item.SaveAs(approval_msg_path)
-                                        print(f"Saved Outlook message: {approval_msg_path}")
+                                        if not save_msg_once:
+                                            unique_msg_filename = self.get_unique_filename(self.msg_save_path, new_filename, ' approval.msg')
+                                            approval_msg_path = os.path.join(self.msg_save_path, f"{unique_msg_filename} approval.msg")
+                                            item.SaveAs(approval_msg_path)
+                                            print(f"Saved Outlook message: {approval_msg_path}")
+                                            save_msg_once = True  # Ensure only one message file is saved
                                 if has_pdf:
                                     self.emails_with_pdf.append(item.Subject)
                                 if has_nvf_new_vendor:
                                     self.emails_with_nvf_new_vendor.append(item.Subject)
-                                if subject_correct:
+                                if subject_correct and not has_nvf_new_vendor:
                                     self.mark_email_as_read(item, mark_as_read)
                                     saved_emails += 1
                                     self.processed_emails[item.Subject] = saved_attachment_paths  # Track processed email
+                                elif has_nvf_new_vendor:
+                                    self.clean_up_files(saved_attachment_paths, approval_msg_path)
                     except Exception as e:
                         print(f"Error processing email from {sender_email}: {str(e)}")
                         not_saved_subjects.append(item.Subject)
@@ -126,31 +132,55 @@ class OutlookProcessor:
                 # Additional block to copy attachments to the utils/pmt_run directory
                 self.copy_attachments_to_pmt_run()
 
-                if self.processed_emails:
-                    print("Summary of processed emails and saved attachments:")
-                    for subject, attachments in self.processed_emails.items():
-                        print(f"Email subject: {subject}")
-                        for attachment in attachments:
-                            print(f" - Saved attachment: {attachment}")
-                # Verify the count of saved attachments
-                actual_saved_attachments = self.count_files_in_directory(self.attachment_save_path)
-                if saved_attachments != actual_saved_attachments:
-                    print(f"Discrepancy detected: expected {saved_attachments} attachments, but found {actual_saved_attachments} in directory.")
+                # Create log file
+                log_directory = r"C:\IT project3\utils\logs"
+                os.makedirs(log_directory, exist_ok=True)
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                log_filename = f"process_log_{timestamp}.txt"
+                log_path = os.path.join(log_directory, log_filename)
+
+                with open(log_path, 'w') as log_file:
+                    log_file.write("Summary of processed emails and saved attachments:\n")
+                    if self.processed_emails:
+                        for subject, attachments in self.processed_emails.items():
+                            log_file.write(f"Email subject: {subject}\n")
+                            for attachment in attachments:
+                                log_file.write(f" - Saved attachment: {attachment}\n")
+
+                    actual_saved_attachments = self.count_files_in_directory(self.attachment_save_path)
+                    if saved_attachments != actual_saved_attachments:
+                        log_file.write(f"Discrepancy detected: expected {saved_attachments} attachments, but found {actual_saved_attachments} in directory.\n")
+
+                    if self.emails_with_pdf:
+                        log_file.write("Emails with PDF attachments:\n")
+                        for subject in self.emails_with_pdf:
+                            log_file.write(f"{subject}\n")
+
+                    if self.emails_with_nvf_new_vendor:
+                        log_file.write("Emails with NVF or New Vendor in attachment filenames:\n")
+                        for subject in self.emails_with_nvf_new_vendor:
+                            log_file.write(f"{subject}\n")
                 
-                # Print detected emails with .pdf and NVF/New Vendor files
-                if self.emails_with_pdf:
-                    print("Emails with PDF attachments:")
-                    for subject in self.emails_with_pdf:
-                        print(subject)
-                if self.emails_with_nvf_new_vendor:
-                    print("Emails with NVF or New Vendor in attachment filenames:")
-                    for subject in self.emails_with_nvf_new_vendor:
-                        print(subject)
+                print(f"Log file created at {log_path}")
 
             else:
                 print("Email saving is disabled. No emails were saved.")
         else:
             print(f"Could not resolve the recipient: {SHARED_MAILBOX_EMAIL}")
+
+    def clean_up_files(self, attachment_paths, msg_path):
+        for attachment_path in attachment_paths:
+            try:
+                os.remove(attachment_path)
+                print(f"Deleted attachment: {attachment_path}")
+            except Exception as e:
+                print(f"Error deleting attachment {attachment_path}: {str(e)}")
+        try:
+            os.remove(msg_path)
+            print(f"Deleted Outlook message: {msg_path}")
+        except Exception as e:
+            print(f"Error deleting Outlook message {msg_path}: {str(e)}")
+
 
 
     def copy_attachments_to_pmt_run(self):
