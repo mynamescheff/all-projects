@@ -8,7 +8,35 @@ import datetime
 
 SHARED_MAILBOX_EMAIL = 'your_shared_mailbox@example.com'
 
+class CharacterTransformer:
+    def __init__(self):
+        self.character_mapping = {
+            'á': 'a', 'à': 'a', 'â': 'a', 'ä': 'a', 'ã': 'a', 'å': 'a', 'æ': 'ae', 'ç': 'c', 'č': 'c', 'ć': 'c',
+            'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e', 'ė': 'e', 'í': 'i', 'ì': 'i', 'î': 'i', 'ï': 'i', 'ñ': 'n',
+            'ó': 'o', 'ò': 'o', 'ô': 'o', 'ö': 'o', 'õ': 'o', 'ø': 'o', 'œ': 'oe', 'š': 's', 'ß': 'ss', 'ú': 'u',
+            'ù': 'u', 'û': 'u', 'ü': 'u', 'ý': 'y', 'ÿ': 'y', 'ž': 'z', 'Á': 'A', 'À': 'A', 'Â': 'A', 'Ä': 'A',
+            'Ã': 'A', 'Å': 'A', 'Æ': 'AE', 'Ç': 'C', 'Č': 'C', 'Ć': 'C', 'É': 'E', 'È': 'E', 'Ê': 'E', 'Ë': 'E',
+            'Ė': 'E', 'Í': 'I', 'Ì': 'I', 'Î': 'I', 'Ï': 'I', 'Ñ': 'N', 'Ó': 'O', 'Ò': 'O', 'Ô': 'O', 'Ö': 'O',
+            'Õ': 'O', 'Ø': 'O', 'Œ': 'OE', 'Š': 'S', 'Ú': 'U', 'Ù': 'U', 'Û': 'U', 'Ü': 'U', 'Ý': 'Y', 'Ÿ': 'Y',
+            'Ž': 'Z', 'Þ': 'th', 'þ': 'th', 'ð': 'dh', 'Đ': 'D', 'đ': 'd', 'ł': 'l', 'Ł': 'L', 'ū': 'u', 'Ū': 'U',
+            'Ā': 'A', 'ā': 'a', 'Ē': 'E', 'ē': 'e', 'Ī': 'I', 'ī': 'i', 'Ō': 'O', 'ō': 'o', 'ă': 'a', 'Ă': 'A',
+            'ș': 's', 'Ș': 'S', 'ț': 't', 'Ț': 'T', 'â': 'a', 'Â': 'A', 'î': 'i', 'Î': 'I', 'ş': 's', 'Ş': 'S',
+            'ğ': 'g', 'Ğ': 'G', 'İ': 'I', 'ı': 'i', 'ö': 'o', 'Ö': 'O', 'ü': 'u', 'Ü': 'U', 'ț': 't', 'Ţ': 'T',
+            '_': ' ', '"': ' ', '  ': ' ', '\xa0': ' ', '\t': ' ', '\n': ' ', '\r': ' ', '\x0b': ' ', '\x0c': ' ',
+            '\u200b': ' ', '\u200c': ' ', '\u200d': ' ', '\u200e': ' ', '\u200f': ' ', '\u202a': ' ', '\u202c': ' ',
+            '\u202d': ' ', '\u202e': ' ', '\u202f': ' ', '\u205f': ' ', '\u3000': ' ', '\u2000': ' ', '\u2001': ' ',
+            '\u2002': ' ', '\u2003': ' ', '\u2004': ' ', '\u2005': ' ', '\u2006': ' ', '\u2007': ' ', '\u2008': ' ',
+            '\u2009': ' ', '\u200a': ' ', ' ': ' ', ' ': ' ', '&nbsp;':'', '\u0219' : 's', 'ș': 's', 'ă': 'a', 'ț': 't',
+        }
 
+    def transform_to_swift_accepted_characters(self, input_list):
+        transformed_list = []
+        for input_string in input_list:
+            transformed_string = re.sub(r'\b\w+\b', lambda m: ''.join(self.character_mapping.get(char, char) for char in m.group()), str(input_string))
+            transformed_string = re.sub(r'[.,]', '', transformed_string)
+            transformed_list.append(transformed_string)
+        return transformed_list
+    
 class OutlookProcessor:
     def __init__(self, category, target_senders, attachment_save_path, msg_save_path):
         self.processed_emails = {}
@@ -139,12 +167,19 @@ class OutlookProcessor:
                 log_filename = f"process_log_{timestamp}.txt"
                 log_path = os.path.join(log_directory, log_filename)
 
-                with open(log_path, 'w') as log_file:
+                # Instantiate CharacterTransformer
+                transformer = CharacterTransformer()
+
+                with open(log_path, 'w', encoding='utf-8') as log_file:
                     log_file.write("Summary of processed emails and saved attachments:\n")
                     if self.processed_emails:
                         for subject, attachments in self.processed_emails.items():
-                            log_file.write(f"Email subject: {subject}\n")
-                            for attachment in attachments:
+                            # Transform the subject
+                            transformed_subject = transformer.transform_to_swift_accepted_characters([subject])[0]
+                            log_file.write(f"Email subject: {transformed_subject}\n")
+                            # Transform the attachment names
+                            transformed_attachments = transformer.transform_to_swift_accepted_characters(attachments)
+                            for attachment in transformed_attachments:
                                 log_file.write(f" - Saved attachment: {attachment}\n")
 
                     actual_saved_attachments = self.count_files_in_directory(self.attachment_save_path)
