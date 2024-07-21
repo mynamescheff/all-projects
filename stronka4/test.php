@@ -1,3 +1,7 @@
+<?php
+// Start PHP session for potential future use
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,297 +9,316 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Local Car Mechanic</title>
     <style>
-        /* Embedded CSS from style.css */
         /* Pop-up modal styles */
-/* Pop-up modal styles */
-.modal {
-  display: none; /* Hidden by default */
-  position: fixed; /* Stay in place */
-  z-index: 1; /* Sit on top */
-  left: 0;
-  top: 0;
-  width: 100%; /* Full width */
-  height: 100%; /* Full height */
-  overflow: auto; /* Enable scroll if needed */
-  background-color: rgb(0,0,0); /* Fallback color */
-  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgb(0,0,0);
+            background-color: rgba(0,0,0,0.4);
+        }
 
-/* Modal Content */
-.modal-content {
-  background-color: #fefefe;
-  margin: 15% auto; /* 15% from the top and centered */
-  padding: 20px;
-  border: 1px solid #888;
-  width: 80%; /* Could be more or less, depending on screen size */
-}
+        /* Modal Content */
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+        }
 
-/* The Close Button */
-.close {
-  color: #aaa;
-  float: right;
-  font-size: 28px;
-  font-weight: bold;
-}
+        /* The Close Button */
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
 
-.close:hover,
-.close:focus {
-  color: black;
-  text-decoration: none;
-  cursor: pointer;
-}
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
 
-.google-map iframe {
-  width: 100%;
-  height: 300px; /* or any other height */
-  border: none;
-}
+        .google-map iframe {
+            width: 100%;
+            height: 300px;
+            border: none;
+        }
 
-footer a img {
-  width: 1em; /* sets the icon size to the same as the current font size */
-  height: auto; /* maintains aspect ratio */
-  vertical-align: middle; /* aligns the icon with the middle of the text */
-}
+        footer a img {
+            width: 1em;
+            height: auto;
+            vertical-align: middle;
+        }
 
-footer a img {
-  width: 1em; /* or however large you want the icons to be relative to your text */
-  height: auto; /* to maintain aspect ratio */
-  vertical-align: middle; /* to align with the text */
-}
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            background-color: #333;
+            color: white;
+        }
 
-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 10px;
-  background-color: #333; /* Dark background for the header */
-  color: white; /* Light text */
-}
+        nav ul {
+            list-style-type: none;
+            display: flex;
+            gap: 10px;
+            margin: 0;
+            padding: 0;
+        }
 
-nav ul {
-  list-style-type: none;
-  display: flex;
-  gap: 10px;
-  margin: 0;
-  padding: 0;
-}
+        nav li {
+            padding: 5px 10px;
+        }
 
-nav li {
-  padding: 5px 10px; /* Add some padding around the list items */
-}
+        nav button {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
-nav button {
-  background-color: #555; /* Slightly lighter than the header for contrast */
-  color: white; /* White text for readability */
-  border: none; /* Remove the default border */
-  padding: 10px 20px; /* Add some padding for a larger click area */
-  margin: 0; /* Remove default margin */
-  cursor: pointer; /* Change mouse cursor to indicate it's clickable */
-  transition: background-color 0.3s; /* Smooth transition for hover effect */
-}
+        nav button:hover {
+            background-color: #777;
+        }
 
-nav button:hover {
-  background-color: #777; /* Lighten button background on hover */
-}
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+            }
 
-/* Responsive design for smaller screens */
-@media (max-width: 768px) {
-  header {
-      flex-direction: column;
-  }
+            nav ul {
+                width: 100%;
+                justify-content: space-around;
+            }
 
-  nav ul {
-      width: 100%;
-      justify-content: space-around;
-  }
+            nav button {
+                width: 100%;
+                padding: 15px;
+            }
+        }
 
-  nav button {
-      width: 100%; /* Full width buttons on smaller screens */
-      padding: 15px; /* Larger padding for easier touch */
-  }
-}
+        body {
+            margin: 0;
+            padding: 0 20px;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
 
-/* Add padding and margin as needed for alignment */
-body {
-  margin: 0;
-  padding: 0 20px; /* This adds 20 pixels of padding on the left and right */
-  font-family: Arial, sans-serif;
-  min-height: 100vh; /* This makes sure the content takes minimum full viewport height */
-  display: flex;
-  flex-direction: column; /* Aligns the content in a column */
-}
+        main {
+            flex: 1;
+        }
 
-main {
-  flex: 1; /* This allows the main content to grow and push the footer down */
-}
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            margin-top: auto;
+        }
 
-footer {
-  background-color: #333; /* Example background color */
-  color: white; /* Example text color */
-  text-align: center;
-  padding: 10px 0; /* Example padding */
-  margin-top: auto; /* This pushes the footer to the bottom */
-}
+        .maps-link {
+            font-weight: bold;
+            text-decoration: underline;
+        }
 
-.maps-link {
-  font-weight: bold;
-  text-decoration: underline;
-}
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
 
-/* Style for mobile devices */
-@media (max-width: 768px) {
-  /* Stack the header title and navigation on top of each other */
-  header {
-      flex-direction: column;
-      align-items: flex-start; /* Align items to the start (left) */
-  }
+            nav ul {
+                flex-direction: column;
+                align-items: flex-start;
+                width: 100%;
+            }
 
-  nav ul {
-      flex-direction: column;
-      align-items: flex-start;
-      width: 100%; /* Full width */
-  }
+            nav li {
+                width: 100%;
+            }
 
-  nav li {
-      width: 100%; /* Full width list items */
-  }
+            nav button {
+                width: 100%;
+                padding: 15px;
+            }
 
-  /* Adjust button sizes for easier interaction on touch devices */
-  nav button {
-      width: 100%; /* Full width buttons */
-      padding: 15px; /* Larger padding for easier touch */
-  }
+            .modal-content {
+                width: 90%;
+                margin: 10% auto;
+            }
+        }
 
-  /* Adjust modal styles for smaller screens */
-  .modal-content {
-      width: 90%; /* Make modal content slightly smaller than the screen width */
-      margin: 10% auto; /* Increase top margin */
-  }
+        .phone-link {
+            display: inline-block;
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            text-align: center;
+        }
 
-  /* Other styles as needed for smaller screens */
-}
+        .phone-link:hover, .phone-link:active {
+            background-color: #0056b3;
+        }
 
-/* You can also add styles for larger tablets and smaller desktops, if necessary */
-@media (min-width: 769px) and (max-width: 1024px) {
-  /* Adjust styles for larger tablets and smaller desktops */
-}
+        .contact-options {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
 
-.phone-link {
-    display: inline-block;
-    background-color: #007bff; /* Bootstrap primary button color for example */
-    color: white;
-    padding: 10px 15px;
-    margin: 10px 0;
-    border: none;
-    border-radius: 5px;
-    text-decoration: none;
-    text-align: center;
-}
+        .contact-person {
+            display: block;
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin: 0 5px;
+            text-decoration: none;
+            border-radius: 5px;
+            width: 30%;
+        }
 
-.phone-link:hover, .phone-link:active {
-    background-color: #0056b3;
-}
+        @media (max-width: 768px) {
+            .contact-person {
+                width: auto;
+                flex-grow: 1;
+            }
+        }
 
-.contact-options {
-    display: flex;
-    justify-content: space-around; /* Distributes space evenly around the items */
-    padding: 10px 0; /* Add some vertical padding */
-}
+        .thumbnails img {
+            width: 100px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
 
-.contact-person {
-    display: block;
-    background-color: #007bff; /* Example background color */
-    color: white; /* Text color */
-    text-align: center;
-    padding: 10px;
-    margin: 0 5px; /* Add horizontal margin for spacing between boxes */
-    text-decoration: none; /* Remove underline from links */
-    border-radius: 5px; /* Optional: rounds the corners of the boxes */
-    width: 30%; /* Example width to ensure they fit in one row */
-}
+        .thumbnails img:hover {
+            transform: scale(1.1);
+        }
 
-/* Adjustments for smaller screens */
-@media (max-width: 768px) {
-    .contact-person {
-        width: auto; /* Let the boxes take up the needed width */
-        flex-grow: 1; /* Allow boxes to grow as needed */
-    }
-}
+        .lightbox {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
 
-/* Thumbnail images */
-.thumbnails img {
-  width: 100px;
-  cursor: pointer;
-  transition: transform 0.2s;
-}
+        .lightbox-content {
+            position: relative;
+        }
 
-.thumbnails img:hover {
-  transform: scale(1.1);
-}
+        .arrow {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            font-size: 24px;
+            color: white;
+            user-select: none;
+        }
 
-/* Lightbox */
-.lightbox {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.8);
-  z-index: 2;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+        .arrow.left {
+            left: 0;
+        }
 
-.lightbox-content {
-  position: relative;
-}
+        .arrow.right {
+            right: 0;
+        }
 
-.arrow {
-  cursor: pointer;
-  position: absolute;
-  top: 50%;
-  font-size: 24px;
-  color: white;
-  user-select: none;
-}
+        .fullsize-photo {
+            display: block;
+            max-width: 90%;
+            max-height: 80vh;
+        }
 
-.arrow.left {
-  left: 0;
-}
+        .lightbox-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            padding: 5px 10px;
+            border-radius: 50%;
+            z-index: 3;
+        }
 
-.arrow.right {
-  right: 0;
-}
+        .close-lightbox {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: white;
+            font-size: 30px;
+            cursor: pointer;
+        }
 
-.fullsize-photo {
-  display: block;
-  max-width: 90%;
-  max-height: 80vh;
-}
+        :root {
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --link-color: #0000ff;
+            --modal-background-color: #fefefe;
+        }
 
-.lightbox-close {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  background-color: red; /* Red background for visibility */
-  color: white; /* White text */
-  border: none; /* Remove default border */
-  cursor: pointer; /* Change cursor to pointer */
-  font-size: 20px; /* Increase font size for better visibility */
-  padding: 5px 10px; /* Padding around the text */
-  border-radius: 50%; /* Circle shape */
-  z-index: 3; /* Ensure it's above the photo */
-}
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --background-color: #121212;
+                --text-color: #ffffff;
+                --link-color: #bb86fc;
+                --modal-background-color: #333333;
+            }
+        }
 
-.close-lightbox {
-  position: absolute;
-  top: 15px;
-  right: 15px;
-  color: white;
-  font-size: 30px;
-  cursor: pointer;
-}
+        .light-theme {
+            --background-color: #ffffff;
+            --text-color: #000000;
+            --link-color: #0000ff;
+            --modal-background-color: #fefefe;
+        }
+
+        .dark-theme {
+            --background-color: #121212;
+            --text-color: #ffffff;
+            --link-color: #bb86fc;
+            --modal-background-color: #333333;
+        }
+
+        body {
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        a {
+            color: var(--link-color);
+        }
+
+        .modal-content {
+            background-color: var(--modal-background-color);
+        }
     </style>
 </head>
 <body>
@@ -307,15 +330,14 @@ footer {
                 <li><button id="servicesBtn">Services</button></li>
                 <li><button id="galleryBtn">Gallery</button></li>
                 <li><button id="contactBtn">Contact Us</button></li>
+                <button id="theme-toggle">Toggle Theme</button>
             </ul>
         </nav>
     </header>
     <main>
-        <!-- Main content or welcome text -->
         <div class="welcome-text">
             <p>Your trusted partner for all automotive repairs.</p>
         </div>
-        <!-- About Us Modal -->
         <div id="aboutModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -323,7 +345,6 @@ footer {
                 <p>We are a family-owned workshop with over 25 years of experience...</p>
             </div>
         </div>
-        <!-- Services Modal -->
         <div id="servicesModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -331,15 +352,12 @@ footer {
                 <p>We offer a wide range of services, including...</p>
             </div>
         </div>
-        <!-- Gallery Modal -->
         <div id="galleryModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <div class="thumbnails">
-                    <!-- Example thumbnails -->
                     <img src="static/images/1.jpg" alt="Thumbnail 1" class="thumbnail">
                     <img src="static/images/2.jpg" alt="Thumbnail 2" class="thumbnail">
-                    <!-- Add more thumbnails as needed -->
                 </div>
                 <div class="lightbox" style="display:none;">
                     <div class="lightbox-content">
@@ -351,7 +369,6 @@ footer {
                 </div>
             </div>
         </div>
-        <!-- Contact Us Modal -->
         <div id="contactModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
@@ -362,15 +379,8 @@ footer {
                     <a href="tel:+1234567891" class="contact-person">Call Person 2</a>
                     <a href="tel:+1234567892" class="contact-person">Call Person 3</a>
                 </div>
-                <!-- Google Maps Embed -->
                 <div class="google-map">
-                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2549.0841379255903!2d18.73525917722413!3d50.29035727156201!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6bb30835716a3609%3A0x6a5c64b627f42465!2sMotospec%20Serwis%20Samochodowy!5e0!3m2!1sen!2spl!4v1708367202157!5m2!1sen!2spl" 
-                    width="600" 
-                    height="450" 
-                    style="border:0;" 
-                    allowfullscreen="" 
-                    loading="lazy" 
-                    referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2549.0841379255903!2d18.73525917722413!3d50.29035727156201!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6bb30835716a3609%3A0x6a5c64b627f42465!2sMotospec%20Serwis%20Samochodowy!5e0!3m2!1sen!2spl!4v1708367202157!5m2!1sen!2spl" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
             </div>
         </div>
@@ -378,151 +388,158 @@ footer {
     <footer>
         <p>&copy; 2024 Local Car Mechanic Shop. All rights reserved.</p>
         <p>Follow us on:
-            <a href="https://www.facebook.com/profile.php?id=61552495111520" target="_blank"><img src="{{ url_for('static', filename='images/facebook-icon.png') }}" alt="Facebook"></a>
-            <a href="https://www.instagram.com/motospec.serwis/" target="_blank"><img src="{{ url_for('static', filename='images/instagram-icon.png') }}" alt="Instagram"></a>
+            <a href="https://www.facebook.com/profile.php?id=61552495111520" target="_blank"><img src="static/images/facebook-icon.png" alt="Facebook"></a>
+            <a href="https://www.instagram.com/motospec.serwis/" target="_blank"><img src="static/images/instagram-icon.png" alt="Instagram"></a>
         </p>
-        <p>Find us <a href="https://www.google.com/maps/dir/?api=1&destination=Motospec+Serwis+Samochodowy,+Generała+Władysława+Sikorskiego+94,+44-103+Gliwice" target="_blank" class="maps-link">here</a>:
-            <a href="https://www.google.com/maps/dir/?api=1&destination=Motospec+Serwis+Samochodowy,+Generała+Władysława+Sikorskiego+94,+44-103+Gliwice" target="_blank"><img src="{{ url_for('static', filename='images/google-maps-icon.png') }}" alt="Google Maps"></a>
+        <p>Find us <a href="https://www.google.com/maps/dir/?api=1&destination=Motospec+Serwis+Samochodowy,+Genera%C5%82a+W%C5%82adys%C5%82awa+Sikorskiego+94,+44-103+Gliwice" target="_blank" class="maps-link">here</a>:
+            <a href="https://www.google.com/maps/dir/?api=1&destination=Motospec+Serwis+Samochodowy,+Genera%C5%82a+W%C5%82adys%C5%82awa+Sikorskiego+94,+44-103+Gliwice" target="_blank"><img src="static/images/google-maps-icon.png" alt="Google Maps"></a>
         </p>
     </footer>
-
     <script>
-        // Embedded JavaScript from script.js
         document.addEventListener('DOMContentLoaded', () => {
-    // Get all buttons that opens modals
-    let modalBtns = document.querySelectorAll('[id$="Btn"]'); // Selects all buttons ending with 'Btn'
-    
-    modalBtns.forEach(function(btn) {
-        btn.onclick = function() {
-            let modal = document.getElementById(btn.id.replace('Btn', 'Modal'));
-            if(modal) {
-                modal.style.display = "block";
+            let modalBtns = document.querySelectorAll('[id$="Btn"]');
+            
+            modalBtns.forEach(function(btn) {
+                btn.onclick = function() {
+                    let modal = document.getElementById(btn.id.replace('Btn', 'Modal'));
+                    if(modal) {
+                        modal.style.display = "block";
+                    }
+                }
+            });
+
+            let closeButtons = document.querySelectorAll('.close');
+            
+            closeButtons.forEach(function(btn) {
+                btn.onclick = function() {
+                    let modal = btn.closest('.modal');
+                    if(modal) {
+                        modal.style.display = "none";
+                    }
+                }
+            });
+
+            window.onclick = function(event) {
+                if (event.target.classList.contains('modal')) {
+                    event.target.style.display = "none";
+                }
             }
-        }
-    });
-
-    // Get all elements that closes modals
-    let closeButtons = document.querySelectorAll('.close');
-    
-    closeButtons.forEach(function(btn) {
-        btn.onclick = function() {
-            let modal = btn.closest('.modal');
-            if(modal) {
-                modal.style.display = "none";
-            }
-        }
-    });
-
-    // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            event.target.style.display = "none";
-        }
-    }
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Function to close any open modal
-    function closeModals() {
-        let modals = document.querySelectorAll('.modal');
-        modals.forEach(function(modal) {
-            modal.style.display = 'none';
         });
-    }
 
-    // Attach click event to modal buttons
-    let modalBtns = document.querySelectorAll('[id$="Btn"]');
-    
-    modalBtns.forEach(function(btn) {
-        btn.onclick = function() {
-            let modal = document.getElementById(btn.id.replace('Btn', 'Modal'));
-            if(modal) {
-                modal.style.display = "block";
+        document.addEventListener('DOMContentLoaded', () => {
+            function closeModals() {
+                let modals = document.querySelectorAll('.modal');
+                modals.forEach(function(modal) {
+                    modal.style.display = 'none';
+                });
             }
-        }
-    });
 
-    // Attach click event to close buttons
-    let closeButtons = document.querySelectorAll('.close');
-    
-    closeButtons.forEach(function(btn) {
-        btn.onclick = function() {
-            closeModals();
-        }
-    });
+            let modalBtns = document.querySelectorAll('[id$="Btn"]');
+            
+            modalBtns.forEach(function(btn) {
+                btn.onclick = function() {
+                    let modal = document.getElementById(btn.id.replace('Btn', 'Modal'));
+                    if(modal) {
+                        modal.style.display = "block";
+                    }
+                }
+            });
 
-    // Close modals when clicking outside of them
-    window.onclick = function(event) {
-        if (event.target.classList.contains('modal')) {
-            closeModals();
-        }
-    }
+            let closeButtons = document.querySelectorAll('.close');
+            
+            closeButtons.forEach(function(btn) {
+                btn.onclick = function() {
+                    closeModals();
+                }
+            });
 
-    // Close modals when pressing the Esc key
-    document.onkeydown = function(event) {
-        if (event.key === "Escape") {
-            closeModals();
-        }
-    }
-});
+            window.onclick = function(event) {
+                if (event.target.classList.contains('modal')) {
+                    closeModals();
+                }
+            }
 
-document.addEventListener('DOMContentLoaded', function() {
-    const thumbnails = document.querySelectorAll('.thumbnail');
-    const lightbox = document.querySelector('.lightbox');
-    const fullsizePhoto = document.querySelector('.fullsize-photo');
-    const closeLightboxButton = document.querySelector('.close-lightbox');
-    let currentIndex;
-
-    thumbnails.forEach((thumbnail, index) => {
-        thumbnail.addEventListener('click', function() {
-            lightbox.style.display = 'flex';
-            fullsizePhoto.src = thumbnail.src; // Assuming full-size images are the same as thumbnails for simplicity
-            currentIndex = index;
-            updateArrows();
+            document.onkeydown = function(event) {
+                if (event.key === "Escape") {
+                    closeModals();
+                }
+            }
         });
-    });
 
-    closeLightboxButton.addEventListener('click', function() {
-        lightbox.style.display = 'none';
-    });
+        document.addEventListener('DOMContentLoaded', function() {
+            const thumbnails = document.querySelectorAll('.thumbnail');
+            const lightbox = document.querySelector('.lightbox');
+            const fullsizePhoto = document.querySelector('.fullsize-photo');
+            const closeLightboxButton = document.querySelector('.close-lightbox');
+            let currentIndex;
 
-    document.querySelector('.arrow.left').addEventListener('click', function() {
-        navigatePhotos(-1);
-    });
+            thumbnails.forEach((thumbnail, index) => {
+                thumbnail.addEventListener('click', function() {
+                    lightbox.style.display = 'flex';
+                    fullsizePhoto.src = thumbnail.src;
+                    currentIndex = index;
+                    updateArrows();
+                });
+            });
 
-    document.querySelector('.arrow.right').addEventListener('click', function() {
-        navigatePhotos(1);
-    });
-
-    document.addEventListener('keydown', function(event) {
-        if (event.key === "Escape") {
-            if (lightbox.style.display === 'flex') {
+            closeLightboxButton.addEventListener('click', function() {
                 lightbox.style.display = 'none';
-                event.preventDefault(); // Prevent further handling
+            });
+
+            document.querySelector('.arrow.left').addEventListener('click', function() {
+                navigatePhotos(-1);
+            });
+
+            document.querySelector('.arrow.right').addEventListener('click', function() {
+                navigatePhotos(1);
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === "Escape") {
+                    if (lightbox.style.display === 'flex') {
+                        lightbox.style.display = 'none';
+                        event.preventDefault();
+                    }
+                } else if (event.key === 'ArrowLeft') {
+                    navigatePhotos(-1);
+                } else if (event.key === 'ArrowRight') {
+                    navigatePhotos(1);
+                }
+            });
+
+            function navigatePhotos(direction) {
+                if (lightbox.style.display === 'flex') {
+                    currentIndex += direction;
+                    currentIndex = (currentIndex + thumbnails.length) % thumbnails.length;
+                    fullsizePhoto.src = thumbnails[currentIndex].src;
+                    updateArrows();
+                }
             }
-            // Now only the lightbox is targeted for the Escape key, not the gallery modal
-        } else if (event.key === 'ArrowLeft') {
-            navigatePhotos(-1);
-        } else if (event.key === 'ArrowRight') {
-            navigatePhotos(1);
-        }
-    });
 
-    function navigatePhotos(direction) {
-        if (lightbox.style.display === 'flex') { // Ensure this runs only if the lightbox is open
-            currentIndex += direction;
-            currentIndex = (currentIndex + thumbnails.length) % thumbnails.length; // Cycle through thumbnails
-            fullsizePhoto.src = thumbnails[currentIndex].src;
-            updateArrows();
-        }
-    }
+            function updateArrows() {
+                document.querySelector('.arrow.left').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
+                document.querySelector('.arrow.right').style.visibility = currentIndex < thumbnails.length - 1 ? 'visible' : 'hidden';
+            }
+        });
 
-    function updateArrows() {
-        document.querySelector('.arrow.left').style.visibility = currentIndex > 0 ? 'visible' : 'hidden';
-        document.querySelector('.arrow.right').style.visibility = currentIndex < thumbnails.length - 1 ? 'visible' : 'hidden';
-    }
-});
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
 
+            themeToggle.addEventListener('click', () => {
+                if (document.body.classList.contains('dark-theme')) {
+                    document.body.classList.remove('dark-theme');
+                    document.body.classList.add('light-theme');
+                    localStorage.setItem('theme', 'light');
+                } else {
+                    document.body.classList.remove('light-theme');
+                    document.body.classList.add('dark-theme');
+                    localStorage.setItem('theme', 'dark');
+                }
+            });
+
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.body.classList.add(savedTheme + '-theme');
+        });
     </script>
 </body>
 </html>
