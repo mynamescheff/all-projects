@@ -1,12 +1,30 @@
 import openpyxl
 import csv
 import logging
+import os
+from datetime import datetime
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def determine_currency_bank_acc(currency, comparison_currency):
+    # Check the value in column E of comparison file first
+    if comparison_currency == "ACC LTD":
+        return "GBP bank acc"
+    elif comparison_currency == "ACC LTD USD":
+        return "USD bank acc"
+    elif comparison_currency == "ACC LTD EUR":
+        return "EUR bank acc"
+    elif comparison_currency == "ACC LTD CHF":
+        return "CHF bank acc"
+    else:
+        # Fallback to original logic if comparison_currency is not in expected values
+        if currency in ["EUR", "USD", "CHF"]:
+            return f"{currency} bank acc"
+        else:
+            return "GBP bank acc"
+
 def trim_column_b_value(value, length):
-    # Strip leading spaces and remove hyphens, then trim the string from column B to a maximum of 'length' characters
     value = value.lstrip().replace('-', '').replace('–', '')
     if len(value) <= length:
         return value
@@ -22,7 +40,6 @@ def trim_column_b_value(value, length):
         return trimmed
 
 def split_b_value(b_value):
-    # Split the B value into chunks of up to 35 characters
     parts = []
     while len(b_value) > 35:
         split_point = 35
@@ -58,68 +75,108 @@ def adjust_length(b_value, c_value):
             break
     return ' '.join(b_words), c_value
 
-def determine_currency_bank_acc(currency):
-    if currency in ["EUR", "USD", "CHF"]:
-        return f"{currency} bank acc"
-    else:
-        return "GBP bank acc"
+def check_special_transfer(comparison_sheet, comparison_row):
+    transfer_type = comparison_sheet[f'F{comparison_row}'].value
+    if transfer_type in ["UK Faster/Next Day Payment", "SEPA Credit Transfer"]:
+        return transfer_type
+    return None
 
 try:
-    # Load the workbook and select the sheet
-    workbook_path = 'C:\\IT project3\\utils\\combined_file.xlsx'
+    output_dir = 'C:\\IT project3\\utils'
+    log_dir = os.path.join(output_dir, 'import_logs')
+
+    os.makedirs(output_dir, exist_ok=True)
+    os.makedirs(log_dir, exist_ok=True)
+
+    comparison_path = os.path.join(output_dir, 'comparison_file.xlsx')
+    logging.info(f'Loading comparison file from {comparison_path}')
+    comparison_workbook = openpyxl.load_workbook(comparison_path)
+    comparison_sheet = comparison_workbook.active
+    comparison_dict = {
+        comparison_sheet[f'C{row}'].value: row
+        for row in range(2, comparison_sheet.max_row + 1)
+    }
+    logging.info('Comparison file loaded successfully')
+
+    workbook_path = os.path.join(output_dir, 'combined_file.xlsx')
     logging.info(f'Loading workbook from {workbook_path}')
     workbook = openpyxl.load_workbook(workbook_path)
     sheet = workbook['Transposed']
     logging.info('Workbook loaded successfully')
 
-    # Specify the columns you want to extract
     columns = ['B', 'C', 'D', 'E', 'F', 'G', 'I']
     logging.debug(f'Columns to extract: {columns}')
 
-    # Open a CSV file to write to
-    csv_path = 'C:\\IT project3\\utils\\output.csv'
+    csv_path = os.path.join(output_dir, 'output.csv')
     logging.info(f'Opening CSV file at {csv_path} for writing')
+
     with open(csv_path, mode='w', newline='') as file:
         writer = csv.writer(file)
-        
-        # Iterate over the rows in the sheet
+        log_entries = []
+        row_number = 1  # Initialize the row counter
+
         for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
-            # Check if the first cell in the row is empty, indicating the end of data
+            row_number += 1
+
             if row[0].value is None:
                 logging.info('Empty cell found in first column, stopping iteration')
                 break
 
-            # Extract and process values from columns B and C
             col_b_value = row[sheet['B1'].column - 1].value or ''
             col_c_value = row[sheet['C1'].column - 1].value or ''
             col_e_value = row[sheet['E1'].column - 1].value or ''
+            col_f_value = row[sheet['F1'].column - 1].value
+            col_g_value = row[sheet['G1'].column - 1].value
 
-            # Process the B value
+            match_value = None
+            comparison_row = None
+            if col_f_value in comparison_dict:
+                match_value = col_f_value
+                comparison_row = comparison_dict[col_f_value]
+            if col_g_value in comparison_dict and col_g_value != col_f_value:
+                match_value = col_g_value
+                comparison_row = comparison_dict[col_g_value]
+            
+            if match_value is None:
+                reason = f"Row {row_number} (Name: '{col_b_value}'): "
+                reason += "Neither F nor G matched with comparison file."
+                log_entries.append(reason)
+                continue
+
+            special_transfer = check_special_transfer(comparison_sheet, comparison_row)
+            if special_transfer:
+                reason = f"Row {row_number} (Name: '{col_b_value}'): Value '{match_value}' skipped because it's a special transfer type ({special_transfer})."
+                log_entries.append(reason)
+                continue
+
             trimmed_b_16 = trim_column_b_value(col_b_value, 16)
             b_parts = split_b_value(col_b_value)
             if len(b_parts) > 3:
                 b_value = remove_duplicates(col_b_value)
                 b_parts = split_b_value(b_value)
             
-            # Ensure there are exactly three parts for the B value
             while len(b_parts) < 3:
                 b_parts.append('')
 
-            # Add the C value at the end of B parts
             b_parts.append(col_c_value)
             
-            # Extract other column values
             other_values = [row[sheet[column + '1'].column - 1].value for column in columns[2:]]
             
-            # Determine the currency bank account value
-            currency_bank_acc = determine_currency_bank_acc(col_e_value)
+            comparison_currency_value = comparison_sheet[f'E{comparison_row}'].value
 
-            # Combine all values to write to the CSV
-            row_data = [trimmed_b_16] + b_parts + other_values + [currency_bank_acc]
+            currency_bank_acc = determine_currency_bank_acc(col_e_value, comparison_currency_value)
+
+            row_data = [trimmed_b_16] + b_parts + [match_value] + other_values[1:] + [currency_bank_acc]
             logging.debug(f'Writing row data: {row_data}')
-            # Write the row to the CSV file
             writer.writerow(row_data)
-    
+
+    if log_entries:
+        log_path = os.path.join(log_dir, f'log_{datetime.now().strftime("%Y%m%d_%H%M%S")}.txt')
+        with open(log_path, 'w') as log_file:
+            log_file.write(f"Log generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            log_file.write("\n".join(log_entries))
+        logging.info(f'Log file created at {log_path}')
+
     logging.info('Data successfully written to CSV file')
 
 except Exception as e:
