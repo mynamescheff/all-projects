@@ -2,13 +2,14 @@ import openpyxl
 import csv
 import logging
 import os
+import subprocess
 from datetime import datetime
+import re
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def determine_currency_bank_acc(currency, comparison_currency):
-    # Check the value in column E of comparison file first
     if comparison_currency == "ACC LTD":
         return "GBP bank acc"
     elif comparison_currency == "ACC LTD USD":
@@ -18,26 +19,13 @@ def determine_currency_bank_acc(currency, comparison_currency):
     elif comparison_currency == "ACC LTD CHF":
         return "CHF bank acc"
     else:
-        # Fallback to original logic if comparison_currency is not in expected values
         if currency in ["EUR", "USD", "CHF"]:
             return f"{currency} bank acc"
         else:
             return "GBP bank acc"
 
-def trim_column_b_value(value, length):
-    value = value.lstrip().replace('-', '').replace('–', '')
-    if len(value) <= length:
-        return value
-    else:
-        trimmed = value[:length]
-        last_space = trimmed.rfind(' ')
-        if last_space != -1 and last_space < length - 1:
-            next_word = value[last_space+1:].split()[0] if ' ' in value[last_space+1:] else value[last_space+1:]
-            remaining_word_length = len(trimmed[last_space+1:])
-            next_word_length = len(next_word)
-            if remaining_word_length < next_word_length / 2:
-                return trimmed[:last_space]
-        return trimmed
+def clean_column_b_value(value):
+    return ''.join([char for char in value if char.isalpha() or char in ['-', '–', ' ']])
 
 def split_b_value(b_value):
     parts = []
@@ -46,13 +34,19 @@ def split_b_value(b_value):
         while split_point > 0 and not b_value[split_point].isalnum():
             split_point -= 1
         if split_point == 0:
-            split_point = 35  # In case no alphanumeric character is found
+            split_point = 35
         parts.append(b_value[:split_point].rstrip())
         b_value = b_value[split_point:].lstrip()
     parts.append(b_value)
     return parts
 
+def clean_currency(value):
+    if value:
+        return value.replace('USD', '').replace('EUR', '')
+    return value
+
 def remove_duplicates(b_value):
+    b_value = b_value.replace('\n', '').replace('\r', '')
     words = b_value.split()
     seen = set()
     result = []
@@ -93,7 +87,7 @@ try:
     comparison_workbook = openpyxl.load_workbook(comparison_path)
     comparison_sheet = comparison_workbook.active
     comparison_dict = {
-        comparison_sheet[f'C{row}'].value: row
+        clean_currency(comparison_sheet[f'C{row}'].value): row
         for row in range(2, comparison_sheet.max_row + 1)
     }
     logging.info('Comparison file loaded successfully')
@@ -113,7 +107,7 @@ try:
     with open(csv_path, mode='w', newline='') as file:
         writer = csv.writer(file)
         log_entries = []
-        row_number = 1  # Initialize the row counter
+        row_number = 1
 
         for row in sheet.iter_rows(min_row=1, max_row=sheet.max_row):
             row_number += 1
@@ -122,24 +116,29 @@ try:
                 logging.info('Empty cell found in first column, stopping iteration')
                 break
 
-            col_b_value = row[sheet['B1'].column - 1].value or ''
-            col_c_value = row[sheet['C1'].column - 1].value or ''
-            col_e_value = row[sheet['E1'].column - 1].value or ''
-            col_f_value = row[sheet['F1'].column - 1].value
-            col_g_value = row[sheet['G1'].column - 1].value
+            # Clean B value to retain only letters and '-' or '–'
+            col_b_value = clean_column_b_value(row[sheet['B1'].column - 1].value or '')
+            col_c_value = (row[sheet['C1'].column - 1].value or '').replace('\n', '').replace('\r', '')
+            col_e_value = (row[sheet['E1'].column - 1].value or '').replace('\n', '').replace('\r', '')
+            col_f_value = clean_currency((row[sheet['F1'].column - 1].value or '').replace('\n', '').replace('\r', ''))
+            col_g_value = clean_currency((row[sheet['G1'].column - 1].value or '').replace('\n', '').replace('\r', ''))
 
+            # Deduplicate F and G values
             match_value = None
             comparison_row = None
+            matched_column = None
+
             if col_f_value in comparison_dict:
                 match_value = col_f_value
                 comparison_row = comparison_dict[col_f_value]
+                matched_column = 'F'
             if col_g_value in comparison_dict and col_g_value != col_f_value:
                 match_value = col_g_value
                 comparison_row = comparison_dict[col_g_value]
-            
+                matched_column = 'G'
+
             if match_value is None:
-                reason = f"Row {row_number} (Name: '{col_b_value}'): "
-                reason += "Neither F nor G matched with comparison file."
+                reason = f"Row {row_number} (Name: '{col_b_value}'): Neither F nor G matched with comparison file."
                 log_entries.append(reason)
                 continue
 
@@ -149,24 +148,28 @@ try:
                 log_entries.append(reason)
                 continue
 
-            trimmed_b_16 = trim_column_b_value(col_b_value, 16)
+            # Move E value before the matched value (either F or G)
+            trimmed_b_16 = col_b_value[:16]
             b_parts = split_b_value(col_b_value)
             if len(b_parts) > 3:
                 b_value = remove_duplicates(col_b_value)
                 b_parts = split_b_value(b_value)
-            
+
             while len(b_parts) < 3:
                 b_parts.append('')
 
             b_parts.append(col_c_value)
-            
-            other_values = [row[sheet[column + '1'].column - 1].value for column in columns[2:]]
-            
+
+            # Include the matched value only (either F or G)
+            other_values = [col_e_value, match_value]
+
+            other_values.extend([row[sheet[column + '1'].column - 1].value for column in columns[4:5]])
+
             comparison_currency_value = comparison_sheet[f'E{comparison_row}'].value
 
             currency_bank_acc = determine_currency_bank_acc(col_e_value, comparison_currency_value)
 
-            row_data = [trimmed_b_16] + b_parts + [match_value] + other_values[1:] + [currency_bank_acc]
+            row_data = [trimmed_b_16] + b_parts + other_values + [currency_bank_acc]
             logging.debug(f'Writing row data: {row_data}')
             writer.writerow(row_data)
 
@@ -176,6 +179,16 @@ try:
             log_file.write(f"Log generated on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
             log_file.write("\n".join(log_entries))
         logging.info(f'Log file created at {log_path}')
+
+        # Automatically open the log file
+        try:
+            subprocess.Popen(['notepad.exe', log_path])
+        except FileNotFoundError:
+            logging.warning("Notepad not found. Trying to open with the default editor.")
+            try:
+                os.startfile(log_path)
+            except Exception as e:
+                logging.error(f"Could not open log file: {e}", exc_info=True)
 
     logging.info('Data successfully written to CSV file')
 
